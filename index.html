@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioSea Atlas · Global Marine Conservation Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+<style>
+:root {
+  --ocean-deep: #020c18;
+  --ocean-mid: #041424;
+  --ocean-light: #071d30;
+  --border: rgba(0,200,200,0.12);
+  --border-hover: rgba(0,200,200,0.28);
+  --teal: #00d4c8;
+  --teal-dim: #00a89e;
+  --teal-faint: rgba(0,212,200,0.06);
+  --text-bright: #e8f4f8;
+  --text-mid: #7db3c8;
+  --text-dim: #3a6878;
+  --sidebar-w: 300px;
+  --header-h: 52px;
+  --panel-h: 340px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: 'Instrument Sans', sans-serif;
+  background: var(--ocean-deep);
+  color: var(--text-bright);
+  overflow: hidden;
+}
+
+/* ── HEADER ─────────────────────────────── */
+#header {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  background: linear-gradient(90deg, #020c18 0%, #041424 60%, #020c18 100%);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.2rem;
+  z-index: 1000;
+}
+.header-left { display: flex; align-items: center; gap: 1rem; }
+.header-logo {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.15rem;
+  color: var(--teal); letter-spacing: -0.01em;
+}
+.header-sub {
+  font-size: 0.68rem; color: var(--text-dim);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.header-badge {
+  background: rgba(0,212,200,0.1); border: 1px solid rgba(0,212,200,0.3);
+  color: var(--teal); font-size: 0.6rem; font-family: 'Syne', sans-serif;
+  letter-spacing: 0.1em; padding: 0.2rem 0.6rem; border-radius: 20px;
+}
+.header-right { display: flex; align-items: center; gap: 0.8rem; }
+
+/* stats pills */
+.stat-pill {
+  display: flex; align-items: center; gap: 0.4rem;
+  background: rgba(0,212,200,0.05); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.25rem 0.7rem; font-size: 0.68rem;
+}
+.stat-pill .val {
+  font-family: 'Syne', sans-serif; font-size: 0.82rem;
+  color: var(--teal); font-weight: 700;
+}
+.stat-pill .lbl { color: var(--text-dim); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* search */
+#search-wrap {
+  position: relative; display: flex; align-items: center;
+}
+#search-input {
+  background: rgba(0,212,200,0.05); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.3rem 0.7rem 0.3rem 2rem;
+  color: var(--text-bright); font-size: 0.78rem; font-family: 'Instrument Sans', sans-serif;
+  width: 200px; outline: none; transition: border-color 0.2s;
+}
+#search-input:focus { border-color: var(--teal-dim); }
+#search-input::placeholder { color: var(--text-dim); }
+.search-icon {
+  position: absolute; left: 0.55rem;
+  color: var(--text-dim); font-size: 0.8rem; pointer-events: none;
+}
+#search-results {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: #041424; border: 1px solid var(--border);
+  border-radius: 6px; z-index: 2000; display: none; max-height: 200px; overflow-y: auto;
+}
+.search-item {
+  padding: 0.45rem 0.8rem; font-size: 0.75rem; color: var(--text-mid);
+  cursor: pointer; border-bottom: 1px solid rgba(0,200,200,0.06);
+  transition: background 0.15s;
+}
+.search-item:hover { background: var(--teal-faint); color: var(--teal); }
+
+/* ── LAYOUT ─────────────────────────────── */
+#app {
+  position: fixed;
+  top: var(--header-h); left: 0; right: 0; bottom: 0;
+  display: flex;
+}
+
+/* ── SIDEBAR ────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: linear-gradient(180deg, #030f1e 0%, #020c18 100%);
+  border-right: 1px solid var(--border);
+  overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.sb-section {
+  font-family: 'Syne', sans-serif; font-size: 0.58rem; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 0.9rem 1.1rem 0.35rem; color: var(--text-dim);
+  border-top: 1px solid var(--border); margin-top: 0.2rem;
+}
+.sb-section:first-child { border-top: none; margin-top: 0; }
+
+.sb-group {
+  margin: 0 0.7rem 0.4rem; padding: 0.55rem 0.75rem;
+  background: rgba(0,212,200,0.03); border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.sb-group-title {
+  font-family: 'Syne', sans-serif; font-size: 0.58rem; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal-dim);
+  margin-bottom: 0.45rem;
+}
+.sb-group-alert {
+  margin: 0 0.7rem 0.4rem; padding: 0.55rem 0.75rem;
+  background: rgba(155,89,182,0.05); border: 1px solid rgba(155,89,182,0.25);
+  border-radius: 8px;
+}
+.sb-group-title-alert {
+  font-family: 'Syne', sans-serif; font-size: 0.58rem; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: #c084fc;
+  margin-bottom: 0.45rem;
+}
+.sb-group-danger {
+  margin: 0 0.7rem 0.4rem; padding: 0.55rem 0.75rem;
+  background: rgba(255,0,0,0.04); border: 1px solid rgba(255,80,80,0.25);
+  border-radius: 8px;
+}
+.sb-group-title-danger {
+  font-family: 'Syne', sans-serif; font-size: 0.58rem; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: #f87171;
+  margin-bottom: 0.45rem;
+}
+
+/* checkboxes */
+.cb-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.28rem; cursor: pointer;
+}
+.cb-row input[type=checkbox] { display: none; }
+.cb-box {
+  width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0;
+  border: 1px solid rgba(0,200,200,0.3); background: rgba(0,212,200,0.05);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.cb-row input:checked + .cb-box {
+  background: var(--teal); border-color: var(--teal);
+}
+.cb-check { color: #020c18; font-size: 9px; font-weight: 900; display: none; }
+.cb-row input:checked + .cb-box .cb-check { display: block; }
+.cb-label { font-size: 0.78rem; color: var(--text-bright); user-select: none; }
+.cb-sub { font-size: 0.62rem; color: var(--text-dim); }
+
+/* LFP colour dots */
+.lfp-dot {
+  width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; margin-left: auto;
+}
+
+/* slider */
+.slider-wrap { padding: 0.3rem 0 0.1rem; }
+.slider-label {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.68rem; color: var(--text-mid); margin-bottom: 0.4rem;
+}
+.slider-val { font-family: 'Syne', sans-serif; color: var(--teal); font-size: 0.75rem; }
+input[type=range] {
+  width: 100%; accent-color: var(--teal); cursor: pointer;
+  height: 4px; border-radius: 2px;
+}
+.year-display {
+  text-align: center; font-family: 'Syne', sans-serif; font-size: 1rem;
+  color: var(--teal); font-weight: 700; margin-top: 0.3rem;
+}
+
+/* opacity */
+.opacity-row {
+  display: flex; align-items: center; gap: 0.6rem; margin-top: 0.4rem;
+}
+.opacity-label { font-size: 0.68rem; color: var(--text-dim); white-space: nowrap; }
+
+/* legend */
+.legend-row {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 0.7rem; color: var(--text-mid); margin-bottom: 4px;
+}
+.ldot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.ldot-pulse {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(255,50,50,0.9);
+  animation: pulse-ring 1.6s ease-out infinite;
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(255,50,50,0.8); }
+  70%  { box-shadow: 0 0 0 7px rgba(255,50,50,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,50,50,0); }
+}
+
+/* LFP legend gradient bar */
+.lfp-grad-bar {
+  height: 10px; border-radius: 3px; margin: 4px 0 2px;
+  background: linear-gradient(to right, #064e3b, #059669, #34d399, #a7f3d0, #d1fae5);
+}
+.lfp-grad-labels {
+  display: flex; justify-content: space-between;
+  font-size: 0.58rem; color: var(--text-dim);
+}
+
+/* info box */
+.info-box {
+  margin: 0 0.7rem 0.4rem; padding: 0.5rem 0.75rem;
+  background: rgba(0,212,200,0.04); border: 1px solid rgba(0,212,200,0.12);
+  border-radius: 6px; font-size: 0.7rem; color: var(--text-mid); line-height: 1.5;
+}
+
+/* ── MAP AREA ────────────────────────────── */
+#map-col {
+  flex: 1; display: flex; flex-direction: column; position: relative; overflow: hidden;
+}
+#map {
+  flex: 1;
+  cursor: crosshair;
+}
+
+/* ── OBIS PANEL ─────────────────────────── */
+#obis-panel {
+  height: var(--panel-h); background: var(--ocean-mid);
+  border-top: 1px solid var(--border); overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  flex-shrink: 0; padding: 0.8rem 1rem;
+  transition: height 0.3s ease;
+}
+#obis-panel::-webkit-scrollbar { width: 4px; }
+#obis-panel::-webkit-scrollbar-thumb { background: var(--border); }
+
+#obis-placeholder {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; color: var(--text-dim); font-size: 0.8rem; text-align: center;
+  border: 1px dashed rgba(0,212,200,0.15); border-radius: 8px;
+  gap: 0.4rem;
+}
+#obis-placeholder .big { font-size: 1.4rem; opacity: 0.4; }
+#obis-placeholder b { color: var(--teal-dim); }
+
+#obis-content { display: none; }
+
+.obis-loc-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.7rem;
+  background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.6rem 0.9rem;
+}
+.obis-loc-coords {
+  font-size: 0.98rem; color: var(--text-bright); font-weight: 500;
+}
+.obis-loc-sub { font-size: 0.62rem; color: var(--text-dim); margin-top: 2px; }
+.obis-live-badge {
+  font-family: 'Syne', sans-serif; font-size: 0.58rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--teal-dim);
+  background: rgba(0,212,200,0.06); border: 1px solid rgba(0,212,200,0.15);
+  border-radius: 5px; padding: 0.2rem 0.6rem;
+}
+
+/* MPA status badge */
+.mpa-status-row {
+  display: flex; gap: 0.5rem; margin-bottom: 0.7rem; flex-wrap: wrap;
+}
+.mpa-badge {
+  font-family: 'Syne', sans-serif; font-size: 0.62rem; letter-spacing: 0.08em;
+  padding: 0.25rem 0.7rem; border-radius: 5px; border: 1px solid;
+}
+.mpa-badge.inside { background: rgba(0,212,200,0.1); border-color: rgba(0,212,200,0.3); color: var(--teal); }
+.mpa-badge.outside { background: rgba(255,80,80,0.08); border-color: rgba(255,80,80,0.25); color: #f87171; }
+.mpa-badge.lfp { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.3); color: #34d399; }
+
+/* metrics */
+.metrics-row {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 0.5rem; margin-bottom: 0.7rem;
+}
+.metric-card {
+  background: rgba(4,20,36,0.7); border: 1px solid var(--border);
+  border-radius: 7px; padding: 0.5rem 0.7rem;
+}
+.metric-label {
+  font-size: 0.58rem; color: var(--text-dim); letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 0.2rem;
+}
+.metric-value {
+  font-family: 'Syne', sans-serif; font-size: 1.25rem;
+  color: var(--teal); font-weight: 700;
+}
+
+/* taxon chart */
+.taxon-section-title {
+  font-family: 'Syne', sans-serif; font-size: 0.58rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--teal); margin-bottom: 0.5rem;
+}
+.taxon-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.35rem; font-size: 0.72rem;
+}
+.taxon-name { color: var(--text-mid); width: 110px; flex-shrink: 0; }
+.taxon-bar-wrap {
+  flex: 1; height: 6px; background: rgba(0,212,200,0.1); border-radius: 3px;
+}
+.taxon-bar { height: 6px; border-radius: 3px; background: var(--teal); transition: width 0.4s ease; }
+.taxon-count { color: var(--teal); font-family: 'Syne', sans-serif; font-size: 0.7rem; min-width: 36px; text-align: right; }
+
+/* species table */
+.species-table-title {
+  font-family: 'Syne', sans-serif; font-size: 0.58rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--teal); margin: 0.8rem 0 0.4rem;
+}
+.sp-header {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 70px;
+  gap: 0.4rem; padding: 0.35rem 0.7rem;
+  background: rgba(0,212,200,0.08); border-radius: 5px 5px 0 0;
+  border: 1px solid rgba(0,212,200,0.15);
+  font-size: 0.58rem; color: var(--teal-dim); letter-spacing: 0.1em; text-transform: uppercase;
+}
+.sp-row {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 70px;
+  gap: 0.4rem; padding: 0.38rem 0.7rem; align-items: center;
+  border-left: 1px solid rgba(0,212,200,0.15);
+  border-right: 1px solid rgba(0,212,200,0.15);
+  border-bottom: 1px solid rgba(0,212,200,0.06);
+  font-size: 0.72rem;
+}
+.sp-row:nth-child(odd) { background: rgba(0,212,200,0.025); }
+.sp-name { font-style: italic; color: var(--text-bright); }
+.sp-bar-wrap { display: flex; flex-direction: column; gap: 2px; }
+.sp-mini-bar { height: 2px; background: rgba(0,212,200,0.15); border-radius: 1px; }
+.sp-mini-fill { height: 2px; background: var(--teal); border-radius: 1px; }
+.sp-phylum { color: var(--text-dim); }
+.sp-class { color: var(--text-dim); }
+.sp-count { color: var(--teal); font-family: 'Syne', sans-serif; font-weight: 600; text-align: right; }
+
+/* loading spinner */
+#obis-loading {
+  display: none; flex-direction: column; align-items: center;
+  justify-content: center; height: 100%; gap: 0.8rem;
+}
+.spinner {
+  width: 32px; height: 32px; border: 2px solid rgba(0,212,200,0.15);
+  border-top-color: var(--teal); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 0.75rem; color: var(--text-dim); }
+
+/* ── CITATIONS ───────────────────────────── */
+#citations {
+  position: fixed; bottom: 0; left: var(--sidebar-w); right: 0;
+  background: rgba(2,12,24,0.97); border-top: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  font-size: 0.62rem; color: var(--text-dim);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem;
+  z-index: 900; transform: translateY(100%); transition: transform 0.3s ease;
+}
+#citations.open { transform: translateY(0); }
+#citations-toggle {
+  position: fixed; bottom: 0.5rem; right: 1rem;
+  background: var(--ocean-mid); border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 0.62rem; font-family: 'Syne', sans-serif;
+  letter-spacing: 0.1em; text-transform: uppercase; padding: 0.25rem 0.65rem;
+  border-radius: 5px; cursor: pointer; z-index: 1001; transition: all 0.15s;
+}
+#citations-toggle:hover { color: var(--teal); border-color: var(--teal-dim); }
+.source-chip {
+  display: inline-block; background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border); border-radius: 3px;
+  font-size: 0.6rem; color: var(--text-dim); padding: 0.1rem 0.4rem;
+}
+.cite-entry {
+  font-size: 0.62rem; color: var(--text-dim); line-height: 1.6;
+  padding: 0.3rem 0; border-bottom: 1px solid rgba(0,200,200,0.06);
+  width: 100%;
+}
+.cite-entry a { color: var(--teal-dim); text-decoration: none; }
+.cite-entry a:hover { color: var(--teal); }
+
+/* ── PANEL TOGGLE ────────────────────────── */
+#panel-toggle {
+  position: absolute; bottom: var(--panel-h); right: 1rem;
+  background: var(--ocean-mid); border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 0.62rem; font-family: 'Syne', sans-serif;
+  letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.6rem;
+  border-radius: 5px 5px 0 0; cursor: pointer; z-index: 500;
+  transition: all 0.15s;
+}
+#panel-toggle:hover { color: var(--teal); border-color: var(--teal-dim); }
+
+/* ── LEAFLET OVERRIDES ───────────────────── */
+.leaflet-control-zoom {
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important; overflow: hidden;
+}
+.leaflet-control-zoom a {
+  background: var(--ocean-mid) !important; color: var(--text-mid) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.leaflet-control-zoom a:hover { color: var(--teal) !important; }
+.leaflet-control-layers {
+  background: var(--ocean-mid) !important;
+  border: 1px solid var(--border) !important; color: var(--text-bright) !important;
+  border-radius: 6px !important;
+}
+.leaflet-control-layers-toggle { background-color: var(--ocean-mid) !important; }
+
+/* ── TOOLTIP ─────────────────────────────── */
+.leaflet-tooltip {
+  background: var(--ocean-mid) !important; border: 1px solid var(--border) !important;
+  color: var(--text-bright) !important; font-family: 'Instrument Sans', sans-serif !important;
+  font-size: 0.72rem !important; border-radius: 5px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+}
+.leaflet-tooltip::before { border-top-color: var(--border) !important; }
+
+/* scrollbar panel */
+#obis-panel::-webkit-scrollbar { width: 4px; }
+#obis-panel::-webkit-scrollbar-track { background: transparent; }
+#obis-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* fade in */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.3s ease forwards; }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header id="header">
+  <div class="header-left">
+    <div>
+      <div class="header-logo">🌊 BioSea Atlas</div>
+      <div class="header-sub">Global Marine Biodiversity &amp; Conservation Explorer</div>
+    </div>
+    <div class="header-badge">LIVE · OBIS + GEE</div>
+    <div class="stat-pill">
+      <div><div class="val" id="stat-mpa">—</div><div class="lbl">MPA Coverage</div></div>
+    </div>
+    <div class="stat-pill">
+      <div><div class="val" id="stat-stress">—</div><div class="lbl">Stressed Reefs</div></div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div id="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="search-input" placeholder="Search country or ocean…">
+      <div id="search-results"></div>
+    </div>
+  </div>
+</header>
+
+<!-- ── APP ── -->
+<div id="app">
+
+  <!-- ── SIDEBAR ── -->
+  <aside id="sidebar">
+
+    <div class="info-box" id="gee-status">⏳ Loading layers…</div>
+
+    <!-- NAVIGATOR LFP -->
+    <div class="sb-section">🛡 Navigator LFP Protection</div>
+
+    <div class="sb-group">
+      <div class="sb-group-title">Combined layer — colour by score</div>
+      <label class="cb-row">
+        <input type="checkbox" id="lfp-combined">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">All LFP (1–5 gradient)</span>
+      </label>
+      <div class="lfp-grad-bar" style="margin-top:6px"></div>
+      <div class="lfp-grad-labels"><span>LFP 1 (strictest)</span><span>LFP 5</span></div>
+    </div>
+
+    <div class="sb-group">
+      <div class="sb-group-title">Individual LFP layers</div>
+      <label class="cb-row">
+        <input type="checkbox" id="lfp1">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">LFP 1 — Fully Protected</span>
+        <span class="lfp-dot" style="background:#064e3b"></span>
+      </label>
+      <label class="cb-row">
+        <input type="checkbox" id="lfp2">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">LFP 2 — Highly Protected</span>
+        <span class="lfp-dot" style="background:#059669"></span>
+      </label>
+      <label class="cb-row">
+        <input type="checkbox" id="lfp3">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">LFP 3 — Moderately Protected</span>
+        <span class="lfp-dot" style="background:#34d399"></span>
+      </label>
+      <label class="cb-row">
+        <input type="checkbox" id="lfp4">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">LFP 4 — Lightly Protected</span>
+        <span class="lfp-dot" style="background:#a7f3d0"></span>
+      </label>
+      <label class="cb-row">
+        <input type="checkbox" id="lfp5">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">LFP 5 — Minimally Protected</span>
+        <span class="lfp-dot" style="background:#d1fae5"></span>
+      </label>
+    </div>
+
+    <!-- CORAL -->
+    <div class="sb-section">🪸 Coral Reef Layers</div>
+    <div class="sb-group">
+      <div class="sb-group-title">Allen Coral Atlas</div>
+      <label class="cb-row">
+        <input type="checkbox" id="aca-benthic">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Benthic Habitat Map</span>
+      </label>
+      <label class="cb-row">
+        <input type="checkbox" id="aca-geomorph">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Geomorphic Zones</span>
+      </label>
+      <label class="cb-row">
+        <input type="checkbox" id="aca-bleach">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Reef Extent (Traffic Light)</span>
+      </label>
+    </div>
+
+    <div class="sb-group">
+      <div class="sb-group-title">NOAA Ocean Climate</div>
+      <label class="cb-row">
+        <input type="checkbox" id="noaa-sst">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Sea Surface Temperature</span>
+      </label>
+      <label class="cb-row">
+        <input type="checkbox" id="noaa-dhw">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Degree Heating Weeks</span>
+      </label>
+      <div class="slider-wrap" id="sst-slider-wrap" style="display:none">
+        <div class="slider-label">
+          <span>SST Year</span>
+          <span class="slider-val" id="sst-year-val">2020</span>
+        </div>
+        <input type="range" id="sst-year" min="2010" max="2024" value="2020" step="1">
+        <div class="year-display" id="sst-year-display">2020</div>
+      </div>
+    </div>
+
+    <!-- ECOSYSTEMS -->
+    <div class="sb-section">🌿 Coastal Ecosystems</div>
+    <div class="sb-group">
+      <div class="sb-group-title">Global Mangrove Watch</div>
+      <label class="cb-row">
+        <input type="checkbox" id="mangrove">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Mangrove Extent 2020</span>
+      </label>
+    </div>
+
+    <!-- BIODIVERSITY -->
+    <div class="sb-section">🦈 Species Richness</div>
+    <div class="sb-group">
+      <div class="sb-group-title">IUCN Threatened Species</div>
+      <label class="cb-row">
+        <input type="checkbox" id="iucn-sharks">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Sharks &amp; Rays density</span>
+      </label>
+      <label class="cb-row">
+        <input type="checkbox" id="iucn-mammals">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Marine Mammals density</span>
+      </label>
+      <label class="cb-row">
+        <input type="checkbox" id="iucn-tunas">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Tunas &amp; Billfishes density</span>
+      </label>
+    </div>
+
+    <!-- RISK -->
+    <div class="sb-section">🚨 Risk Analysis</div>
+    <div class="sb-group-alert">
+      <div class="sb-group-title-alert">🟣 MPAs Under Thermal Stress</div>
+      <label class="cb-row">
+        <input type="checkbox" id="mpa-stress">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Protected + DHW stress overlap</span>
+      </label>
+    </div>
+    <div class="sb-group-danger">
+      <div class="sb-group-title-danger">🔴 Unprotected High Biodiversity Areas</div>
+      <label class="cb-row">
+        <input type="checkbox" id="unprotected-bio">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Unprotected high biodiversity area</span>
+      </label>
+    </div>
+
+    <!-- OBIS -->
+    <div class="sb-section">🔬 OBIS Biodiversity</div>
+    <div class="sb-group">
+      <div class="sb-group-title">Click-to-inspect</div>
+      <label class="cb-row">
+        <input type="checkbox" id="obis-toggle" checked>
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Enable OBIS panel</span>
+      </label>
+      <div style="font-size:0.62rem;color:var(--text-dim);margin-top:4px;line-height:1.5">
+        Click anywhere on the map to query live species data from OBIS
+      </div>
+    </div>
+
+    <!-- DISPLAY -->
+    <div class="sb-section">⚙ Display</div>
+    <div class="sb-group">
+      <div class="opacity-row">
+        <span class="opacity-label">Opacity</span>
+        <input type="range" id="opacity-slider" min="0.1" max="1" step="0.05" value="0.75">
+        <span style="font-family:'Syne',sans-serif;color:var(--teal);font-size:0.72rem;min-width:30px" id="opacity-val">75%</span>
+      </div>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="sb-section">📋 Legend</div>
+    <div style="padding: 0 0.7rem 1rem">
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">LFP Score</div>
+      <div class="lfp-grad-bar"></div>
+      <div class="lfp-grad-labels"><span>1 — Strict</span><span>5 — Minimal</span></div>
+      <div style="height:0.6rem"></div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Coral &amp; Climate</div>
+      <div class="legend-row"><div class="ldot" style="background:#29b6f6"></div>ACA Benthic habitat</div>
+      <div class="legend-row"><div class="ldot" style="background:#ab47bc"></div>ACA Geomorphic zones</div>
+      <div class="legend-row"><div class="ldot" style="background:#2ecc40"></div>Reef — low stress</div>
+      <div class="legend-row"><div class="ldot" style="background:#ffdc00"></div>Reef — moderate</div>
+      <div class="legend-row"><div class="ldot" style="background:#ff851b"></div>Reef — high stress</div>
+      <div class="legend-row"><div class="ldot" style="background:#ff4136"></div>Reef — severe</div>
+      <div class="legend-row"><div class="ldot" style="background:#a50026"></div>SST (warmest)</div>
+      <div class="legend-row"><div class="ldot" style="background:#f9a825"></div>Degree Heating Weeks</div>
+      <div class="legend-row"><div class="ldot" style="background:#1b5e20"></div>Mangroves 2020</div>
+      <div style="height:0.4rem"></div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Risk</div>
+      <div class="legend-row"><div class="ldot" style="background:#9b59b6"></div>MPA + thermal stress</div>
+      <div class="legend-row"><div class="ldot-pulse"></div>Unprotected stressed reef</div>
+      <div style="height:0.4rem"></div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Biodiversity</div>
+      <div class="legend-row"><div class="ldot" style="background:#00d4c8"></div>OBIS query area</div>
+    </div>
+  </aside>
+
+  <!-- ── MAP + PANEL COLUMN ── -->
+  <div id="map-col">
+    <div id="map"></div>
+    <button id="panel-toggle">▲ OBIS</button>
+    <div id="obis-panel">
+      <div id="obis-placeholder">
+        <div class="big">🔬</div>
+        <div><b>Click anywhere on the map</b> to query OBIS biodiversity data</div>
+        <div style="font-size:0.68rem">A teal box will mark your selected ~10×10 km area</div>
+      </div>
+      <div id="obis-loading">
+        <div class="spinner"></div>
+        <div class="loading-text">Querying OBIS…</div>
+      </div>
+      <div id="obis-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CITATIONS ── -->
+<button id="citations-toggle" onclick="toggleCitations()">📚 Sources</button>
+<div id="citations">
+  <div class="cite-entry">
+    <strong style="color:var(--teal-dim)">ProtectedSeas Navigator</strong> — Zetterlind et al. (2025). Navigator - a global database of verified marine protected and managed area regulations and boundaries. <em>Scientific Data</em>, 12, 1212. <a href="https://doi.org/10.1038/s41597-025-05535-2" target="_blank">doi:10.1038/s41597-025-05535-2</a>
+  </div>
+  <div class="cite-entry">
+    <strong style="color:var(--teal-dim)">Allen Coral Atlas</strong> — Lyons et al. (2020). Mapping the world's coral reefs using a global multiscale earth observation framework. <em>Remote Sensing in Ecology and Conservation</em>. Arizona State University. <a href="https://allencoralatlas.org" target="_blank">allencoralatlas.org</a>
+  </div>
+  <div class="cite-entry">
+    <strong style="color:var(--teal-dim)">NOAA Coral Reef Watch</strong> — Liu et al. (2014). NOAA Coral Reef Watch's 5km satellite coral bleaching heat stress monitoring product suite. <em>NOAA Technical Report NESDIS</em> 145. <a href="https://coralreefwatch.noaa.gov" target="_blank">coralreefwatch.noaa.gov</a>
+  </div>
+  <div class="cite-entry">
+    <strong style="color:var(--teal-dim)">Global Mangrove Watch</strong> — Bunting et al. (2018). The Global Mangrove Watch — A New 2010 Global Baseline of Mangrove Extent. <em>Remote Sensing</em>, 10(10), 1669. JAXA. <a href="https://doi.org/10.3390/rs10101669" target="_blank">doi:10.3390/rs10101669</a>
+  </div>
+  <div class="cite-entry">
+    <strong style="color:var(--teal-dim)">IUCN Red List</strong> — IUCN (2024). The IUCN Red List of Threatened Species. Version 2024-2. <a href="https://www.iucnredlist.org" target="_blank">iucnredlist.org</a>
+  </div>
+  <div class="cite-entry">
+    <strong style="color:var(--teal-dim)">OBIS</strong> — Ocean Biodiversity Information System (2024). Ocean Biodiversity Information System. Intergovernmental Oceanographic Commission of UNESCO. <a href="https://obis.org" target="_blank">obis.org</a>
+  </div>
+  <div class="cite-entry">
+    <strong style="color:var(--teal-dim)">Google Earth Engine</strong> — Gorelick et al. (2017). Google Earth Engine: Planetary-scale geospatial analysis for everyone. <em>Remote Sensing of Environment</em>, 202, 18–27.
+  </div>
+  <div style="margin-top:0.4rem;font-size:0.6rem;color:var(--text-dim)">
+    Map tiles: Esri World Imagery · Esri Ocean Reference · Leaflet.js · OBIS API v3
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────
+const NAVIGATOR_GEOJSON = 'data/navigator_eez.geojson'; // ← place your file here
+const NAVIGATOR_HS_GEOJSON = 'data/navigator_highseas.geojson'; // ← optional high seas
+
+const LFP_COLORS = {
+  1: '#064e3b',
+  2: '#059669',
+  3: '#34d399',
+  4: '#a7f3d0',
+  5: '#d1fae5'
+};
+
+const EXCLUDE_PHYLA = new Set([
+  'Proteobacteria','Cyanobacteria','Bacteroidetes','Firmicutes',
+  'Actinobacteria','Planctomycetes','Verrucomicrobia','Chloroflexi',
+  'Acidobacteria','Spirochaetes','Euryarchaeota','Thaumarchaeota',
+  'Myzozoa','Cercozoa','Foraminifera','Choanoflagellatea'
+]);
+const EXCLUDE_CLASSES = new Set([
+  'Alphaproteobacteria','Gammaproteobacteria','Betaproteobacteria',
+  'Deltaproteobacteria','Thermoplasmata','Dinophyceae'
+]);
+const EXCLUDE_NAMES = new Set(['Bacteria','Archaea','Eukaryota','Viruses']);
+
+// ─────────────────────────────────────────────────────────
+// MAP INIT
+// ─────────────────────────────────────────────────────────
+const map = L.map('map', {
+  center: [10, 10], zoom: 3,
+  zoomControl: true, preferCanvas: true
+});
+
+// Baselayers
+const satellite = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { attribution: 'Esri World Imagery', maxZoom: 18 }
+).addTo(map);
+
+const oceanLabels = L.tileLayer(
+  'https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}',
+  { attribution: 'Esri Ocean Reference', opacity: 0.5, maxZoom: 18 }
+).addTo(map);
+
+// Layer store
+const layers = {};
+let navigatorData = null;
+let queryBox = null;
+let currentOpacity = 0.75;
+let navigatorLayerLoaded = false;
+
+// ─────────────────────────────────────────────────────────
+// WMS / TILE HELPERS
+// ─────────────────────────────────────────────────────────
+function addWMS(id, url, layerName, opts = {}) {
+  layers[id] = L.tileLayer.wms(url, {
+    layers: layerName,
+    format: 'image/png',
+    transparent: true,
+    opacity: currentOpacity,
+    attribution: opts.attr || '',
+    ...opts
+  });
+}
+
+function addTile(id, url, attr) {
+  layers[id] = L.tileLayer(url, { opacity: currentOpacity, attribution: attr, maxZoom: 18 });
+}
+
+// ── NOAA DHW WMS ─────────────────────────────────────────
+addWMS('noaa-dhw',
+  'https://coastwatch.pfeg.noaa.gov/erddap/wms/NOAA_DHW/request',
+  'NOAA_DHW:CRW_DHW',
+  { attr: 'NOAA Coral Reef Watch' }
+);
+
+// ── NOAA SST WMS ─────────────────────────────────────────
+addWMS('noaa-sst',
+  'https://coastwatch.pfeg.noaa.gov/erddap/wms/NOAA_DHW/request',
+  'NOAA_DHW:CRW_SST',
+  { attr: 'NOAA Coral Reef Watch' }
+);
+
+// ── Allen Coral Atlas tiles (public) ─────────────────────
+addWMS('aca-benthic',
+  'https://allencoralatlas.org/geoserver/ows',
+  'coral-atlas:benthic',
+  { attr: 'Allen Coral Atlas / Arizona State University' }
+);
+addWMS('aca-geomorph',
+  'https://allencoralatlas.org/geoserver/ows',
+  'coral-atlas:geomorphic',
+  { attr: 'Allen Coral Atlas / Arizona State University' }
+);
+addWMS('aca-bleach',
+  'https://allencoralatlas.org/geoserver/ows',
+  'coral-atlas:coral',
+  { attr: 'Allen Coral Atlas / Arizona State University' }
+);
+
+// ── Mangrove WMS (Global Mangrove Watch via OpenGeoHub) ──
+addWMS('mangrove',
+  'https://geoserver.earthengine.google.com/v1alpha/projects/sat-io/maps/GMW_mangrove/tiles/{z}/{x}/{y}',
+  '',
+  { attr: 'Global Mangrove Watch / JAXA' }
+);
+// Fallback: use a known working WMS
+layers['mangrove'] = L.tileLayer.wms(
+  'https://apps.globalmangrovewatch.org/api/geoserver/gmw/wms',
+  {
+    layers: 'gmw:gmw_v3_2020',
+    format: 'image/png',
+    transparent: true,
+    opacity: currentOpacity,
+    attribution: 'Global Mangrove Watch v3 / JAXA'
+  }
+);
+
+// ── MPA stress + unprotected (NOAA CRW bleaching alert) ──
+addWMS('mpa-stress',
+  'https://coastwatch.pfeg.noaa.gov/erddap/wms/NOAA_DHW/request',
+  'NOAA_DHW:CRW_BAA_7D_MAX',
+  { attr: 'NOAA CRW Bleaching Alert', opacity: 0.65 }
+);
+
+// Pulsing red layer uses same source but styled differently
+layers['unprotected-bio'] = L.tileLayer.wms(
+  'https://coastwatch.pfeg.noaa.gov/erddap/wms/NOAA_DHW/request',
+  {
+    layers: 'NOAA_DHW:CRW_BAA_7D_MAX',
+    format: 'image/png',
+    transparent: true,
+    opacity: 0.7,
+    attribution: 'NOAA CRW'
+  }
+);
+
+// ─────────────────────────────────────────────────────────
+// NAVIGATOR PMTILES LOADER
+// ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// NAVIGATOR GEOJSON — loaded from GitHub Releases
+// ─────────────────────────────────────────────────────────
+const LFP_FILES = {
+  3: 'https://corsproxy.io/?https://github.com/hmukh1816/Biosea-atlas/releases/download/v1.0/navigator_lfp3.geojson',
+  4: 'https://corsproxy.io/?https://github.com/hmukh1816/Biosea-atlas/releases/download/v1.0/navigator_lfp4.geojson',
+  5: 'https://corsproxy.io/?https://github.com/hmukh1816/Biosea-atlas/releases/download/v1.0/navigator_lfp5.geojson',
+};
+
+let navigatorVectorLayer = null;
+
+function lfpStyle(lfpNum) {
+  return {
+    fillColor: LFP_COLORS[lfpNum] || '#059669',
+    fillOpacity: 0.7,
+    color: '#00d4c8',
+    weight: 0.5,
+    opacity: 0.9
+  };
+}
+
+function loadNavigatorPMTiles(show) {
+  if (!show) {
+    [3,4,5].forEach(n => {
+      if (layers['lfp'+n] && map.hasLayer(layers['lfp'+n])) {
+        map.removeLayer(layers['lfp'+n]);
+        document.getElementById('lfp'+n).checked = false;
+      }
+    });
+    return;
+  }
+  [3,4,5].forEach(n => {
+    loadLFPLayer(n, true);
+    document.getElementById('lfp'+n).checked = true;
+  });
+}
+
+function loadLFPLayer(lfpNum, show) {
+  const id = 'lfp' + lfpNum;
+  if (!show) {
+    if (layers[id]) map.removeLayer(layers[id]);
+    return;
+  }
+  if (layers[id]) { layers[id].addTo(map); return; }
+
+  document.getElementById('gee-status').innerHTML = `⏳ Loading LFP${lfpNum}...`;
+
+  fetch(LFP_FILES[lfpNum])
+    .then(r => {
+      if (!r.ok) throw new Error('Failed to fetch LFP' + lfpNum);
+      return r.json();
+    })
+    .then(data => {
+      // Store for MPA status checks
+      if (!navigatorData) navigatorData = { features: [] };
+      navigatorData.features = navigatorData.features.concat(data.features);
+
+      layers[id] = L.geoJSON(data, {
+        style: () => lfpStyle(lfpNum),
+        onEachFeature: (feature, layer) => {
+          const name = feature.properties.Name || feature.properties.name || feature.properties.SITE_NAME || 'MPA';
+          layer.bindTooltip(`<b>${name}</b><br>LFP Score: ${lfpNum}`, { sticky: true });
+        }
+      }).addTo(map);
+
+      navigatorLayerLoaded = true;
+      document.getElementById('gee-status').innerHTML = '✅ Navigator layers loaded (LFP 3–5)';
+      document.getElementById('gee-status').style.borderColor = 'rgba(0,212,200,0.25)';
+    })
+    .catch(err => {
+      document.getElementById('gee-status').innerHTML = `⚠️ LFP${lfpNum} failed to load`;
+      document.getElementById('gee-status').style.borderColor = 'rgba(255,100,100,0.3)';
+      console.error(err);
+    });
+}
+
+// ─────────────────────────────────────────────────────────
+// LAYER TOGGLE LOGIC
+// ─────────────────────────────────────────────────────────
+function toggleLayer(id, show) {
+  if (!layers[id]) return;
+  if (show) {
+    layers[id].addTo(map);
+    if (layers[id].setOpacity) layers[id].setOpacity(currentOpacity);
+  } else {
+    map.removeLayer(layers[id]);
+  }
+}
+
+// Pulse animation for red layer
+function applyPulse(on) {
+  const el = document.querySelector('.leaflet-layer:last-child');
+  if (!el) return;
+  el.style.animation = on ? 'pulse-red 1.8s ease-in-out infinite' : '';
+}
+
+// Wire up LFP checkboxes via PMTiles loaders
+document.getElementById('lfp-combined').addEventListener('change', e => loadNavigatorPMTiles(e.target.checked));
+[1,2,3,4,5].forEach(n => {
+  document.getElementById('lfp'+n).addEventListener('change', e => loadLFPLayer(n, e.target.checked));
+});
+
+// Wire up all other checkboxes
+const cbMap = {
+  'aca-benthic':    'aca-benthic',
+  'aca-geomorph':   'aca-geomorph',
+  'aca-bleach':     'aca-bleach',
+  'aca-benthic':    'aca-benthic',
+  'aca-geomorph':   'aca-geomorph',
+  'aca-bleach':     'aca-bleach',
+  'noaa-sst':       'noaa-sst',
+  'noaa-dhw':       'noaa-dhw',
+  'mangrove':       'mangrove',
+  'mpa-stress':     'mpa-stress',
+  'unprotected-bio':'unprotected-bio',
+};
+
+Object.entries(cbMap).forEach(([cbId, layerId]) => {
+  const el = document.getElementById(cbId);
+  if (!el) return;
+  el.addEventListener('change', () => {
+    // Special case: combined LFP needs data loaded
+    if (cbId === 'lfp-combined' && !navigatorLayerLoaded) {
+      loadNavigatorLayer('combined', cbId);
+      return;
+    }
+    toggleLayer(layerId, el.checked);
+    if (cbId === 'noaa-sst' || cbId === 'noaa-dhw') {
+      document.getElementById('sst-slider-wrap').style.display =
+        (document.getElementById('noaa-sst').checked || document.getElementById('noaa-dhw').checked) ? 'block' : 'none';
+    }
+  });
+});
+
+// IUCN heatmap layers (built from local shapefiles via pre-computed points)
+// These use GeoJSON point data converted from your Drive shapefiles
+const iucnLayers = {
+  'iucn-sharks': null,
+  'iucn-mammals': null,
+  'iucn-tunas': null
+};
+
+['iucn-sharks','iucn-mammals','iucn-tunas'].forEach(id => {
+  document.getElementById(id).addEventListener('change', e => {
+    if (!iucnLayers[id]) {
+      // Placeholder: load from data/ folder
+      const file = `data/${id}.geojson`;
+      fetch(file)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data) return;
+          const pts = data.features.map(f => {
+            const c = f.geometry.coordinates;
+            return [c[1], c[0], 1];
+          });
+          iucnLayers[id] = L.heatLayer(pts, {
+            radius: 20, blur: 15, maxZoom: 8, opacity: currentOpacity,
+            gradient: { 0.2: '#1a237e', 0.5: '#0288d1', 0.8: '#00e5ff', 1.0: '#ffffff' }
+          });
+          if (e.target.checked) iucnLayers[id].addTo(map);
+        })
+        .catch(() => {});
+    } else {
+      if (e.target.checked) iucnLayers[id].addTo(map);
+      else map.removeLayer(iucnLayers[id]);
+    }
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// OPACITY SLIDER
+// ─────────────────────────────────────────────────────────
+document.getElementById('opacity-slider').addEventListener('input', e => {
+  currentOpacity = parseFloat(e.target.value);
+  document.getElementById('opacity-val').textContent = Math.round(currentOpacity * 100) + '%';
+  Object.values(layers).forEach(l => {
+    if (l && map.hasLayer(l) && l.setOpacity) l.setOpacity(currentOpacity);
+    if (l && map.hasLayer(l) && l.options) l.options.opacity = currentOpacity;
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// SST YEAR SLIDER
+// ─────────────────────────────────────────────────────────
+document.getElementById('sst-year').addEventListener('input', e => {
+  const yr = e.target.value;
+  document.getElementById('sst-year-val').textContent = yr;
+  document.getElementById('sst-year-display').textContent = yr;
+  // Update SST layer URL with new year (NOAA ERDDAP supports time param)
+  if (layers['noaa-sst'] && map.hasLayer(layers['noaa-sst'])) {
+    map.removeLayer(layers['noaa-sst']);
+    layers['noaa-sst'] = L.tileLayer.wms(
+      'https://coastwatch.pfeg.noaa.gov/erddap/wms/NOAA_DHW/request',
+      {
+        layers: 'NOAA_DHW:CRW_SST',
+        format: 'image/png', transparent: true,
+        opacity: currentOpacity,
+        time: `${yr}-07-01T00:00:00Z`,
+        attribution: 'NOAA CRW'
+      }
+    ).addTo(map);
+  }
+});
+
+// ─────────────────────────────────────────────────────────
+// STATS BAR (static estimates — update when data loads)
+// ─────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('stat-mpa').textContent = '8.2%';
+  document.getElementById('stat-stress').textContent = '54%';
+}
+updateStats();
+
+// ─────────────────────────────────────────────────────────
+// SEARCH
+// ─────────────────────────────────────────────────────────
+const REGIONS = [
+  { name: 'Coral Triangle', lat: 3, lng: 127, zoom: 5 },
+  { name: 'Great Barrier Reef', lat: -18, lng: 147, zoom: 5 },
+  { name: 'Caribbean Sea', lat: 15, lng: -73, zoom: 5 },
+  { name: 'Western Indian Ocean', lat: -10, lng: 55, zoom: 5 },
+  { name: 'Mediterranean Sea', lat: 36, lng: 15, zoom: 5 },
+  { name: 'Arctic Ocean', lat: 80, lng: 0, zoom: 4 },
+  { name: 'South China Sea', lat: 15, lng: 115, zoom: 5 },
+  { name: 'Red Sea', lat: 22, lng: 38, zoom: 5 },
+  { name: 'High Seas (Pacific)', lat: 10, lng: -160, zoom: 4 },
+  { name: 'Amazon Reef (Brazil)', lat: 2, lng: -48, zoom: 6 },
+  { name: 'Philippines', lat: 12, lng: 122, zoom: 6 },
+  { name: 'Maldives', lat: 3, lng: 73, zoom: 7 },
+  { name: 'Hawaii', lat: 20, lng: -157, zoom: 7 },
+  { name: 'Galapagos', lat: -1, lng: -91, zoom: 8 },
+  { name: 'Antarctica', lat: -70, lng: 0, zoom: 4 },
+];
+
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  searchResults.innerHTML = '';
+  if (!q) { searchResults.style.display = 'none'; return; }
+  const matches = REGIONS.filter(r => r.name.toLowerCase().includes(q));
+  if (!matches.length) { searchResults.style.display = 'none'; return; }
+  matches.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'search-item';
+    div.textContent = r.name;
+    div.addEventListener('click', () => {
+      map.setView([r.lat, r.lng], r.zoom);
+      searchInput.value = '';
+      searchResults.style.display = 'none';
+    });
+    searchResults.appendChild(div);
+  });
+  searchResults.style.display = 'block';
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#search-wrap')) searchResults.style.display = 'none';
+});
+
+// ─────────────────────────────────────────────────────────
+// OBIS CLICK HANDLER
+// ─────────────────────────────────────────────────────────
+const OBIS_DELTA = 0.045;
+
+const TAXON_GROUPS = {
+  'Actinopterygii':  { label: 'Ray-finned Fish',    color: '#00d4c8' },
+  'Elasmobranchii':  { label: 'Sharks & Rays',       color: '#7c3aed' },
+  'Mammalia':        { label: 'Marine Mammals',      color: '#ec4899' },
+  'Scleractinia':    { label: 'Stony Corals',        color: '#f59e0b' },
+  'Gastropoda':      { label: 'Gastropods',          color: '#10b981' },
+  'Bivalvia':        { label: 'Bivalves',            color: '#3b82f6' },
+  'Polychaeta':      { label: 'Polychaetes',         color: '#6366f1' },
+  'Echinoidea':      { label: 'Sea Urchins',         color: '#ef4444' },
+  'Asteroidea':      { label: 'Sea Stars',           color: '#f97316' },
+  'Crustacea':       { label: 'Crustaceans',         color: '#84cc16' },
+};
+
+function isMacrofauna(r) {
+  const phylum = r.phylum || '';
+  const cls    = r.class  || '';
+  const name   = r.scientificName || '';
+  if (EXCLUDE_PHYLA.has(phylum))  return false;
+  if (EXCLUDE_CLASSES.has(cls))   return false;
+  if (EXCLUDE_NAMES.has(name))    return false;
+  if (name.split(' ').length < 2 && !phylum) return false;
+  return true;
+}
+
+function getMPAStatus(lat, lng) {
+  // If Navigator layer is loaded and active, check point-in-polygon
+  if (!navigatorData || !document.getElementById('lfp-combined').checked) return null;
+  for (const f of navigatorData.features) {
+    if (!f.geometry) continue;
+    // Simple bounding box check first (fast)
+    const bbox = getBBox(f.geometry);
+    if (!bbox) continue;
+    if (lat < bbox.minY || lat > bbox.maxY || lng < bbox.minX || lng > bbox.maxX) continue;
+    return {
+      inside: true,
+      name: f.properties.SITE_NAME || f.properties.NAME || f.properties.name || 'MPA',
+      lfp:  f.properties.LFP_SCORE || f.properties.lfp || f.properties.LFP || '—'
+    };
+  }
+  return { inside: false };
+}
+
+function getBBox(geom) {
+  try {
+    let coords = [];
+    if (geom.type === 'Polygon') coords = geom.coordinates[0];
+    else if (geom.type === 'MultiPolygon') coords = geom.coordinates[0][0];
+    else return null;
+    const xs = coords.map(c => c[0]), ys = coords.map(c => c[1]);
+    return { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) };
+  } catch { return null; }
+}
+
+map.on('click', async e => {
+  if (!document.getElementById('obis-toggle').checked) return;
+
+  const lat = e.latlng.lat, lng = e.latlng.lng;
+
+  // Draw query box
+  if (queryBox) map.removeLayer(queryBox);
+  queryBox = L.rectangle(
+    [[lat - OBIS_DELTA, lng - OBIS_DELTA], [lat + OBIS_DELTA, lng + OBIS_DELTA]],
+    { color: '#00d4c8', weight: 2, fill: true, fillColor: '#00d4c8', fillOpacity: 0.06, dashArray: '6 4' }
+  ).addTo(map);
+  queryBox.bindTooltip(`OBIS query · ${lat.toFixed(3)}°, ${lng.toFixed(3)}°`);
+
+  // Show panel + loading
+  document.getElementById('obis-placeholder').style.display = 'none';
+  document.getElementById('obis-content').style.display = 'none';
+  document.getElementById('obis-loading').style.display = 'flex';
+
+  const geom = `POLYGON((${lng-OBIS_DELTA} ${lat-OBIS_DELTA},${lng+OBIS_DELTA} ${lat-OBIS_DELTA},${lng+OBIS_DELTA} ${lat+OBIS_DELTA},${lng-OBIS_DELTA} ${lat+OBIS_DELTA},${lng-OBIS_DELTA} ${lat-OBIS_DELTA}))`;
+
+  try {
+    const [r1, r2, r3, r4] = await Promise.all([
+      fetch(`https://api.obis.org/v3/checklist?geometry=${encodeURIComponent(geom)}`).then(r => r.json()),
+      fetch(`https://api.obis.org/v3/occurrence?geometry=${encodeURIComponent(geom)}&size=1&fields=scientificName`).then(r => r.json()),
+      fetch(`https://api.obis.org/v3/checklist?geometry=${encodeURIComponent(geom)}&taxonid=1363`).then(r => r.json()),
+      fetch(`https://api.obis.org/v3/occurrence?geometry=${encodeURIComponent(geom)}&size=500&fields=scientificName,phylum,class`).then(r => r.json()),
+    ]);
+
+    const totalSpecies = r1.total || 0;
+    const totalRecords = r2.total || 0;
+    const coralSpecies = r3.total || 0;
+    const results      = (r4.results || []).filter(isMacrofauna);
+
+    // Taxon group counts
+    const taxonCounts = {};
+    results.forEach(r => {
+      const cls = r.class || r.phylum || 'Other';
+      taxonCounts[cls] = (taxonCounts[cls] || 0) + 1;
+    });
+
+    // Top 20 species
+    const nameCount = {};
+    const nameDetail = {};
+    results.forEach(r => {
+      const n = r.scientificName || '?';
+      nameCount[n] = (nameCount[n] || 0) + 1;
+      if (!nameDetail[n]) nameDetail[n] = { phylum: r.phylum || '—', class: r.class || '—' };
+    });
+    const top20 = Object.entries(nameCount).sort((a,b) => b[1]-a[1]).slice(0,20);
+
+    // MPA status
+    const mpaStatus = getMPAStatus(lat, lng);
+
+    renderOBIS({ lat, lng, totalSpecies, totalRecords, coralSpecies, taxonCounts, top20, nameDetail, mpaStatus });
+
+  } catch(err) {
+    document.getElementById('obis-loading').style.display = 'none';
+    document.getElementById('obis-content').innerHTML =
+      `<div style="color:#f87171;padding:1rem;font-size:0.8rem">OBIS query failed: ${err.message}</div>`;
+    document.getElementById('obis-content').style.display = 'block';
+  }
+});
+
+function renderOBIS({ lat, lng, totalSpecies, totalRecords, coralSpecies, taxonCounts, top20, nameDetail, mpaStatus }) {
+  document.getElementById('obis-loading').style.display = 'none';
+
+  const latStr = `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}`;
+  const lngStr = `${Math.abs(lng).toFixed(4)}° ${lng >= 0 ? 'E' : 'W'}`;
+
+  // MPA status badges
+  let mpaBadges = '';
+  if (mpaStatus && document.getElementById('lfp-combined').checked) {
+    if (mpaStatus.inside) {
+      mpaBadges = `
+        <div class="mpa-status-row">
+          <span class="mpa-badge inside">✓ Inside MPA</span>
+          ${mpaStatus.name ? `<span class="mpa-badge inside">${mpaStatus.name}</span>` : ''}
+          ${mpaStatus.lfp !== '—' ? `<span class="mpa-badge lfp">LFP ${mpaStatus.lfp}</span>` : ''}
+        </div>`;
+    } else {
+      mpaBadges = `<div class="mpa-status-row"><span class="mpa-badge outside">✗ Outside MPA</span></div>`;
+    }
+  }
+
+  // Taxon chart
+  const topTaxa = Object.entries(taxonCounts).sort((a,b) => b[1]-a[1]).slice(0,8);
+  const maxTaxon = topTaxa[0]?.[1] || 1;
+  let taxonRows = topTaxa.map(([cls, cnt]) => {
+    const grp = TAXON_GROUPS[cls] || { label: cls, color: '#7db3c8' };
+    const pct = Math.round((cnt / maxTaxon) * 100);
+    return `<div class="taxon-row">
+      <div class="taxon-name">${grp.label}</div>
+      <div class="taxon-bar-wrap"><div class="taxon-bar" style="width:${pct}%;background:${grp.color}"></div></div>
+      <div class="taxon-count" style="color:${grp.color}">${cnt}</div>
+    </div>`;
+  }).join('');
+
+  // Species table
+  const maxCount = top20[0]?.[1] || 1;
+  let spRows = top20.map(([name, cnt]) => {
+    const det = nameDetail[name] || {};
+    const pct = Math.round((cnt / maxCount) * 100);
+    return `<div class="sp-row">
+      <div>
+        <div class="sp-name">${name}</div>
+        <div class="sp-bar-wrap"><div class="sp-mini-bar"><div class="sp-mini-fill" style="width:${pct}%"></div></div></div>
+      </div>
+      <div class="sp-phylum">${det.phylum || '—'}</div>
+      <div class="sp-class">${det.class || '—'}</div>
+      <div class="sp-count">${cnt}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('obis-content').innerHTML = `
+    <div class="fade-up">
+      <div class="obis-loc-bar">
+        <div>
+          <div class="obis-loc-coords">${latStr} &nbsp;|&nbsp; ${lngStr}</div>
+          <div class="obis-loc-sub">±0.045° box · ~10×10 km · click map to move</div>
+        </div>
+        <div class="obis-live-badge">OBIS LIVE</div>
+      </div>
+
+      ${mpaBadges}
+
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-label">🐟 Total Species</div>
+          <div class="metric-value">${totalSpecies.toLocaleString()}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">📋 Occurrence Records</div>
+          <div class="metric-value">${totalRecords.toLocaleString()}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">🪸 Coral Species</div>
+          <div class="metric-value">${coralSpecies.toLocaleString()}</div>
+        </div>
+      </div>
+
+      <div class="taxon-section-title">Species breakdown by group</div>
+      ${taxonRows || '<div style="color:var(--text-dim);font-size:0.75rem">No macrofauna records in this area</div>'}
+
+      <div class="species-table-title">Top 20 most recorded species</div>
+      <div class="sp-header">
+        <div>Species</div><div>Phylum</div><div>Class</div><div style="text-align:right">Records</div>
+      </div>
+      ${spRows || '<div style="color:var(--text-dim);font-size:0.75rem;padding:0.5rem">No species data</div>'}
+
+      <div style="font-size:0.6rem;color:var(--text-dim);margin-top:0.6rem;line-height:1.6">
+        Source: OBIS api.obis.org · Top 20 by occurrence from 500 sampled records · Coral filter: Scleractinia (taxonID 1363) · Data citation: OBIS (2024), iOBIS, Intergovernmental Oceanographic Commission of UNESCO
+      </div>
+    </div>`;
+
+  document.getElementById('obis-content').style.display = 'block';
+}
+
+// ─────────────────────────────────────────────────────────
+// PANEL TOGGLE
+// ─────────────────────────────────────────────────────────
+let panelOpen = true;
+document.getElementById('panel-toggle').addEventListener('click', () => {
+  panelOpen = !panelOpen;
+  const panel = document.getElementById('obis-panel');
+  panel.style.height = panelOpen ? 'var(--panel-h)' : '0';
+  document.getElementById('panel-toggle').textContent = panelOpen ? '▼ OBIS' : '▲ OBIS';
+  document.getElementById('panel-toggle').style.bottom = panelOpen ? 'var(--panel-h)' : '0';
+  setTimeout(() => map.invalidateSize(), 300);
+});
+
+// ─────────────────────────────────────────────────────────
+// CITATIONS TOGGLE
+// ─────────────────────────────────────────────────────────
+function toggleCitations() {
+  document.getElementById('citations').classList.toggle('open');
+}
+
+// ─────────────────────────────────────────────────────────
+// PULSING RED LAYER CSS
+// ─────────────────────────────────────────────────────────
+const style = document.createElement('style');
+style.textContent = `
+@keyframes pulse-red {
+  0%, 100% { opacity: 0.8; }
+  50%       { opacity: 0.15; }
+}`;
+document.head.appendChild(style);
+
+// ─────────────────────────────────────────────────────────
+// RESIZE HANDLER
+// ─────────────────────────────────────────────────────────
+window.addEventListener('resize', () => map.invalidateSize());
+</script>
+</body>
+</html>
