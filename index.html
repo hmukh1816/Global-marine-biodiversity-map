@@ -491,6 +491,20 @@ input[type=range] {
 
     <div class="info-box" id="gee-status">⏳ Loading layers…</div>
 
+    <!-- WDPA -->
+    <div class="sb-section">🌍 WDPA Protected Areas</div>
+    <div class="sb-group">
+      <div class="sb-group-title">UN / IUCN World Database</div>
+      <label class="cb-row">
+        <input type="checkbox" id="wdpa-marine">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Marine Protected Areas (WDPA)</span>
+      </label>
+      <div style="font-size:0.62rem;color:var(--text-dim);margin-top:4px;line-height:1.5">
+        UNEP-WCMC &amp; IUCN global marine protected area boundaries
+      </div>
+    </div>
+
     <!-- NAVIGATOR LFP -->
     <div class="sb-section">🛡 Navigator LFP Protection</div>
 
@@ -692,7 +706,7 @@ input[type=range] {
       <div id="obis-placeholder">
         <div class="big">🔬</div>
         <div><b>Click anywhere on the map</b> to query OBIS biodiversity data</div>
-        <div style="font-size:0.68rem">A teal box will mark your selected ~10×10 km area</div>
+        <div style="font-size:0.68rem">A teal box will mark your selected ~5×5 km area</div>
       </div>
       <div id="obis-loading">
         <div class="spinner"></div>
@@ -706,6 +720,9 @@ input[type=range] {
 <!-- ── CITATIONS ── -->
 <button id="citations-toggle" onclick="toggleCitations()">📚 Sources</button>
 <div id="citations">
+  <div class="cite-entry">
+    <strong style="color:var(--teal-dim)">WDPA</strong> — UNEP-WCMC and IUCN (2025), Protected Planet: The World Database on Protected Areas (WDPA). Cambridge, UK: UNEP-WCMC and IUCN. <a href="https://www.protectedplanet.net" target="_blank">protectedplanet.net</a>
+  </div>
   <div class="cite-entry">
     <strong style="color:var(--teal-dim)">ProtectedSeas Navigator</strong> — Zetterlind et al. (2025). Navigator - a global database of verified marine protected and managed area regulations and boundaries. <em>Scientific Data</em>, 12, 1212. <a href="https://doi.org/10.1038/s41597-025-05535-2" target="_blank">doi:10.1038/s41597-025-05535-2</a>
   </div>
@@ -807,40 +824,34 @@ function addTile(id, url, attr) {
 addWMS('noaa-dhw',
   'https://coastwatch.pfeg.noaa.gov/erddap/wms/NOAA_DHW/request',
   'NOAA_DHW:CRW_DHW',
-  { attr: 'NOAA Coral Reef Watch' }
+  { attr: 'NOAA Coral Reef Watch', version: '1.3.0' }
 );
 
 // ── NOAA SST WMS ─────────────────────────────────────────
 addWMS('noaa-sst',
   'https://coastwatch.pfeg.noaa.gov/erddap/wms/NOAA_DHW/request',
   'NOAA_DHW:CRW_SST',
-  { attr: 'NOAA Coral Reef Watch' }
+  { attr: 'NOAA Coral Reef Watch', version: '1.3.0' }
 );
 
 // ── Allen Coral Atlas tiles (public) ─────────────────────
 addWMS('aca-benthic',
   'https://allencoralatlas.org/geoserver/ows',
   'coral-atlas:benthic',
-  { attr: 'Allen Coral Atlas / Arizona State University' }
+  { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
 );
 addWMS('aca-geomorph',
   'https://allencoralatlas.org/geoserver/ows',
   'coral-atlas:geomorphic',
-  { attr: 'Allen Coral Atlas / Arizona State University' }
+  { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
 );
 addWMS('aca-bleach',
   'https://allencoralatlas.org/geoserver/ows',
   'coral-atlas:coral',
-  { attr: 'Allen Coral Atlas / Arizona State University' }
+  { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
 );
 
-// ── Mangrove WMS (Global Mangrove Watch via OpenGeoHub) ──
-addWMS('mangrove',
-  'https://geoserver.earthengine.google.com/v1alpha/projects/sat-io/maps/GMW_mangrove/tiles/{z}/{x}/{y}',
-  '',
-  { attr: 'Global Mangrove Watch / JAXA' }
-);
-// Fallback: use a known working WMS
+// ── Mangrove WMS (Global Mangrove Watch) ────────────────
 layers['mangrove'] = L.tileLayer.wms(
   'https://apps.globalmangrovewatch.org/api/geoserver/gmw/wms',
   {
@@ -848,7 +859,24 @@ layers['mangrove'] = L.tileLayer.wms(
     format: 'image/png',
     transparent: true,
     opacity: currentOpacity,
-    attribution: 'Global Mangrove Watch v3 / JAXA'
+    attribution: 'Global Mangrove Watch v3 / JAXA',
+    version: '1.1.1'
+  }
+);
+
+// ── WDPA Marine Protected Areas (ArcGIS Feature Service tiles) ──
+layers['wdpa-marine'] = L.tileLayer(
+  'https://tiles.arcgis.com/tiles/wlVTGRSYTzAbjjiC/arcgis/rest/services/WDPA_v0/VectorTileServer/tile/{z}/{y}/{x}.pbf',
+  { opacity: currentOpacity, attribution: 'UNEP-WCMC & IUCN (WDPA)', maxZoom: 18 }
+);
+// Fallback: use the ArcGIS MapServer image export as tiles
+layers['wdpa-marine'] = L.tileLayer(
+  'https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/MapServer/export?bbox={bbox}&bboxSR=3857&imageSR=3857&size=256,256&f=image&format=png32&transparent=true&layers=show:0,1',
+  {
+    opacity: currentOpacity,
+    attribution: 'UNEP-WCMC & IUCN (WDPA)',
+    maxZoom: 18,
+    tileSize: 256
   }
 );
 
@@ -856,7 +884,7 @@ layers['mangrove'] = L.tileLayer.wms(
 addWMS('mpa-stress',
   'https://coastwatch.pfeg.noaa.gov/erddap/wms/NOAA_DHW/request',
   'NOAA_DHW:CRW_BAA_7D_MAX',
-  { attr: 'NOAA CRW Bleaching Alert', opacity: 0.65 }
+  { attr: 'NOAA CRW Bleaching Alert', opacity: 0.65, version: '1.3.0' }
 );
 
 // Pulsing red layer uses same source but styled differently
@@ -867,7 +895,8 @@ layers['unprotected-bio'] = L.tileLayer.wms(
     format: 'image/png',
     transparent: true,
     opacity: 0.7,
-    attribution: 'NOAA CRW'
+    attribution: 'NOAA CRW',
+    version: '1.3.0'
   }
 );
 
@@ -978,9 +1007,7 @@ document.getElementById('lfp-combined').addEventListener('change', e => loadNavi
 
 // Wire up all other checkboxes
 const cbMap = {
-  'aca-benthic':    'aca-benthic',
-  'aca-geomorph':   'aca-geomorph',
-  'aca-bleach':     'aca-bleach',
+  'wdpa-marine':    'wdpa-marine',
   'aca-benthic':    'aca-benthic',
   'aca-geomorph':   'aca-geomorph',
   'aca-bleach':     'aca-bleach',
@@ -1072,7 +1099,8 @@ document.getElementById('sst-year').addEventListener('input', e => {
         format: 'image/png', transparent: true,
         opacity: currentOpacity,
         time: `${yr}-07-01T00:00:00Z`,
-        attribution: 'NOAA CRW'
+        attribution: 'NOAA CRW',
+        version: '1.3.0'
       }
     ).addTo(map);
   }
@@ -1138,7 +1166,7 @@ document.addEventListener('click', e => {
 // ─────────────────────────────────────────────────────────
 // OBIS CLICK HANDLER
 // ─────────────────────────────────────────────────────────
-const OBIS_DELTA = 0.045;
+const OBIS_DELTA = 0.0225;
 
 const TAXON_GROUPS = {
   'Actinopterygii':  { label: 'Ray-finned Fish',    color: '#00d4c8' },
@@ -1311,7 +1339,7 @@ function renderOBIS({ lat, lng, totalSpecies, totalRecords, coralSpecies, taxonC
       <div class="obis-loc-bar">
         <div>
           <div class="obis-loc-coords">${latStr} &nbsp;|&nbsp; ${lngStr}</div>
-          <div class="obis-loc-sub">±0.045° box · ~10×10 km · click map to move</div>
+          <div class="obis-loc-sub">±0.0225° box · ~5×5 km · click map to move</div>
         </div>
         <div class="obis-live-badge">OBIS LIVE</div>
       </div>
