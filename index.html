@@ -861,48 +861,54 @@ layers['noaa-dhw'] = L.tileLayer(
 );
 
 // ── Allen Coral Atlas tiles (public) ─────────────────────
-addWMSNoCors('aca-benthic',
-  'https://allencoralatlas.org/geoserver/ows',
-  'coral-atlas:benthic',
-  { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
-);
-addWMSNoCors('aca-geomorph',
-  'https://allencoralatlas.org/geoserver/ows',
-  'coral-atlas:geomorphic',
-  { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
-);
-addWMSNoCors('aca-bleach',
-  'https://allencoralatlas.org/geoserver/ows',
-  'coral-atlas:coral',
-  { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
-);
+try {
+  addWMSNoCors('aca-benthic',
+    'https://allencoralatlas.org/geoserver/ows',
+    'coral-atlas:benthic',
+    { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
+  );
+  addWMSNoCors('aca-geomorph',
+    'https://allencoralatlas.org/geoserver/ows',
+    'coral-atlas:geomorphic',
+    { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
+  );
+  addWMSNoCors('aca-bleach',
+    'https://allencoralatlas.org/geoserver/ows',
+    'coral-atlas:coral',
+    { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
+  );
+} catch(e) { console.warn('Allen Coral Atlas layers failed to init:', e); }
 
 // ── Mangrove WMS (Global Mangrove Watch) ────────────────
-layers['mangrove'] = new L.TileLayer.WMSNoCors(
-  'https://apps.globalmangrovewatch.org/api/geoserver/gmw/wms',
-  {
-    layers: 'gmw:gmw_v3_2020',
-    format: 'image/png',
-    transparent: true,
-    opacity: currentOpacity,
-    attribution: 'Global Mangrove Watch v3 / JAXA',
-    version: '1.1.1'
-  }
-);
+try {
+  layers['mangrove'] = new L.TileLayer.WMSNoCors(
+    'https://apps.globalmangrovewatch.org/api/geoserver/gmw/wms',
+    {
+      layers: 'gmw:gmw_v3_2020',
+      format: 'image/png',
+      transparent: true,
+      opacity: currentOpacity,
+      attribution: 'Global Mangrove Watch v3 / JAXA',
+      version: '1.1.1'
+    }
+  );
+} catch(e) { console.warn('Mangrove layer failed to init:', e); }
 
 // ── WDPA Marine Protected Areas (UNEP-WCMC MapServer WMS) ──
-layers['wdpa-marine'] = new L.TileLayer.WMSNoCors(
-  'https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/MapServer/WMSServer',
-  {
-    layers: '0,1',
-    format: 'image/png',
-    transparent: true,
-    opacity: currentOpacity,
-    attribution: 'UNEP-WCMC & IUCN (WDPA)',
-    version: '1.1.1',
-    srs: 'EPSG:3857'
-  }
-);
+try {
+  layers['wdpa-marine'] = new L.TileLayer.WMSNoCors(
+    'https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/MapServer/WMSServer',
+    {
+      layers: '0,1',
+      format: 'image/png',
+      transparent: true,
+      opacity: currentOpacity,
+      attribution: 'UNEP-WCMC & IUCN (WDPA)',
+      version: '1.1.1',
+      srs: 'EPSG:3857'
+    }
+  );
+} catch(e) { console.warn('WDPA layer failed to init:', e); }
 
 // ── MPA stress + unprotected (NASA GIBS SST Anomaly as proxy) ──
 layers['mpa-stress'] = L.tileLayer(
@@ -999,13 +1005,15 @@ function loadLFPLayer(lfpNum, show) {
 // LAYER TOGGLE LOGIC
 // ─────────────────────────────────────────────────────────
 function toggleLayer(id, show) {
-  if (!layers[id]) return;
-  if (show) {
-    layers[id].addTo(map);
-    if (layers[id].setOpacity) layers[id].setOpacity(currentOpacity);
-  } else {
-    map.removeLayer(layers[id]);
-  }
+  if (!layers[id]) { console.warn('Layer not found:', id); return; }
+  try {
+    if (show) {
+      layers[id].addTo(map);
+      if (layers[id].setOpacity) layers[id].setOpacity(currentOpacity);
+    } else {
+      map.removeLayer(layers[id]);
+    }
+  } catch(e) { console.error('Toggle error for', id, e); }
 }
 
 // Pulse animation for red layer
