@@ -812,6 +812,7 @@ function addWMS(id, url, layerName, opts = {}) {
     transparent: true,
     opacity: currentOpacity,
     attribution: opts.attr || '',
+    crossOrigin: null,
     ...opts
   });
 }
@@ -860,7 +861,8 @@ layers['mangrove'] = L.tileLayer.wms(
     transparent: true,
     opacity: currentOpacity,
     attribution: 'Global Mangrove Watch v3 / JAXA',
-    version: '1.1.1'
+    version: '1.1.1',
+    crossOrigin: null
   }
 );
 
@@ -874,7 +876,8 @@ layers['wdpa-marine'] = L.tileLayer.wms(
     opacity: currentOpacity,
     attribution: 'UNEP-WCMC & IUCN (WDPA)',
     version: '1.1.1',
-    srs: 'EPSG:3857'
+    srs: 'EPSG:3857',
+    crossOrigin: null
   }
 );
 
@@ -894,7 +897,8 @@ layers['unprotected-bio'] = L.tileLayer.wms(
     transparent: true,
     opacity: 0.7,
     attribution: 'NASA JPL MUR SST Anomaly',
-    version: '1.3.0'
+    version: '1.3.0',
+    crossOrigin: null
   }
 );
 
@@ -1098,7 +1102,8 @@ document.getElementById('sst-year').addEventListener('input', e => {
         opacity: currentOpacity,
         time: `${yr}-07-01T09:00:00Z`,
         attribution: 'NASA JPL MUR SST',
-        version: '1.3.0'
+        version: '1.3.0',
+        crossOrigin: null
       }
     ).addTo(map);
   }
