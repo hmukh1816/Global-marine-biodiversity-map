@@ -820,18 +820,18 @@ function addTile(id, url, attr) {
   layers[id] = L.tileLayer(url, { opacity: currentOpacity, attribution: attr, maxZoom: 18 });
 }
 
-// ── NOAA DHW WMS (PacIOOS mirror — more reliable) ────────
+// ── NOAA DHW WMS ─────────────────────────────────────────
 addWMS('noaa-dhw',
-  'https://pae-paha.pacioos.hawaii.edu/erddap/wms/dhw_5km/request',
-  'dhw_5km:CRW_DHW',
-  { attr: 'NOAA Coral Reef Watch via PacIOOS', version: '1.3.0' }
+  'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request',
+  'jplMURSST41:analysed_sst',
+  { attr: 'NASA JPL MUR SST / NOAA CoastWatch', version: '1.3.0' }
 );
 
-// ── NOAA SST WMS (PacIOOS mirror) ────────────────────────
+// ── NASA JPL MUR SST WMS ─────────────────────────────────
 addWMS('noaa-sst',
-  'https://pae-paha.pacioos.hawaii.edu/erddap/wms/dhw_5km/request',
-  'dhw_5km:CRW_SST',
-  { attr: 'NOAA Coral Reef Watch via PacIOOS', version: '1.3.0' }
+  'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request',
+  'jplMURSST41:analysed_sst',
+  { attr: 'NASA JPL MUR SST v4.1 / NOAA CoastWatch', version: '1.3.0' }
 );
 
 // ── Allen Coral Atlas tiles (public) ─────────────────────
@@ -878,22 +878,22 @@ layers['wdpa-marine'] = L.tileLayer.wms(
   }
 );
 
-// ── MPA stress + unprotected (NOAA CRW bleaching alert) ──
+// ── MPA stress + unprotected (NASA MUR SST anomaly as proxy) ──
 addWMS('mpa-stress',
-  'https://pae-paha.pacioos.hawaii.edu/erddap/wms/dhw_5km/request',
-  'dhw_5km:CRW_BAA',
-  { attr: 'NOAA CRW Bleaching Alert via PacIOOS', opacity: 0.65, version: '1.3.0' }
+  'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41anom1day/request',
+  'jplMURSST41anom1day:sstAnom',
+  { attr: 'NASA JPL MUR SST Anomaly', opacity: 0.65, version: '1.3.0' }
 );
 
-// Pulsing red layer uses same source but styled differently
+// Pulsing red layer uses same source
 layers['unprotected-bio'] = L.tileLayer.wms(
-  'https://pae-paha.pacioos.hawaii.edu/erddap/wms/dhw_5km/request',
+  'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41anom1day/request',
   {
-    layers: 'dhw_5km:CRW_BAA',
+    layers: 'jplMURSST41anom1day:sstAnom',
     format: 'image/png',
     transparent: true,
     opacity: 0.7,
-    attribution: 'NOAA CRW via PacIOOS',
+    attribution: 'NASA JPL MUR SST Anomaly',
     version: '1.3.0'
   }
 );
@@ -1091,13 +1091,13 @@ document.getElementById('sst-year').addEventListener('input', e => {
   if (layers['noaa-sst'] && map.hasLayer(layers['noaa-sst'])) {
     map.removeLayer(layers['noaa-sst']);
     layers['noaa-sst'] = L.tileLayer.wms(
-      'https://pae-paha.pacioos.hawaii.edu/erddap/wms/dhw_5km/request',
+      'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request',
       {
-        layers: 'dhw_5km:CRW_SST',
+        layers: 'jplMURSST41:analysed_sst',
         format: 'image/png', transparent: true,
         opacity: currentOpacity,
-        time: `${yr}-07-01T00:00:00Z`,
-        attribution: 'NOAA CRW via PacIOOS',
+        time: `${yr}-07-01T09:00:00Z`,
+        attribution: 'NASA JPL MUR SST',
         version: '1.3.0'
       }
     ).addTo(map);
