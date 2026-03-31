@@ -840,18 +840,24 @@ function addWMSNoCors(id, url, layerName, opts = {}) {
   });
 }
 
-// ── NOAA DHW WMS ─────────────────────────────────────────
-addWMSNoCors('noaa-dhw',
-  'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request',
-  'jplMURSST41:analysed_sst',
-  { attr: 'NASA JPL MUR SST / NOAA CoastWatch', version: '1.3.0' }
+// ── NASA GIBS Sea Surface Temperature (MUR SST) ──────────
+// GIBS serves pre-rendered tiles with proper CORS headers — no WMS needed
+var today = new Date();
+var gibsDate = today.toISOString().split('T')[0];
+// Use yesterday since GIBS has ~1 day lag
+var yesterday = new Date(today);
+yesterday.setDate(yesterday.getDate() - 2);
+gibsDate = yesterday.toISOString().split('T')[0];
+
+layers['noaa-sst'] = L.tileLayer(
+  'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GHRSST_L4_MUR_Sea_Surface_Temperature/default/' + gibsDate + '/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
+  { opacity: currentOpacity, attribution: 'NASA GIBS / JPL MUR SST', maxZoom: 7, tileSize: 256 }
 );
 
-// ── NASA JPL MUR SST WMS ─────────────────────────────────
-addWMSNoCors('noaa-sst',
-  'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request',
-  'jplMURSST41:analysed_sst',
-  { attr: 'NASA JPL MUR SST v4.1 / NOAA CoastWatch', version: '1.3.0' }
+// DHW — use SST Anomaly from GIBS as a proxy (shows thermal stress)
+layers['noaa-dhw'] = L.tileLayer(
+  'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GHRSST_L4_MUR_Sea_Surface_Temperature_Anomalies/default/' + gibsDate + '/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
+  { opacity: currentOpacity, attribution: 'NASA GIBS / JPL MUR SST Anomaly', maxZoom: 7, tileSize: 256 }
 );
 
 // ── Allen Coral Atlas tiles (public) ─────────────────────
@@ -898,24 +904,16 @@ layers['wdpa-marine'] = new L.TileLayer.WMSNoCors(
   }
 );
 
-// ── MPA stress + unprotected (NASA MUR SST anomaly as proxy) ──
-addWMSNoCors('mpa-stress',
-  'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41anom1day/request',
-  'jplMURSST41anom1day:sstAnom',
-  { attr: 'NASA JPL MUR SST Anomaly', opacity: 0.65, version: '1.3.0' }
+// ── MPA stress + unprotected (NASA GIBS SST Anomaly as proxy) ──
+layers['mpa-stress'] = L.tileLayer(
+  'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GHRSST_L4_MUR_Sea_Surface_Temperature_Anomalies/default/' + gibsDate + '/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
+  { opacity: 0.65, attribution: 'NASA GIBS SST Anomaly', maxZoom: 7, tileSize: 256 }
 );
 
 // Pulsing red layer uses same source
-layers['unprotected-bio'] = new L.TileLayer.WMSNoCors(
-  'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41anom1day/request',
-  {
-    layers: 'jplMURSST41anom1day:sstAnom',
-    format: 'image/png',
-    transparent: true,
-    opacity: 0.7,
-    attribution: 'NASA JPL MUR SST Anomaly',
-    version: '1.3.0'
-  }
+layers['unprotected-bio'] = L.tileLayer(
+  'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GHRSST_L4_MUR_Sea_Surface_Temperature_Anomalies/default/' + gibsDate + '/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
+  { opacity: 0.7, attribution: 'NASA GIBS SST Anomaly', maxZoom: 7, tileSize: 256 }
 );
 
 // ─────────────────────────────────────────────────────────
@@ -1110,15 +1108,13 @@ document.getElementById('sst-year').addEventListener('input', e => {
   // Update SST layer URL with new year (NOAA ERDDAP supports time param)
   if (layers['noaa-sst'] && map.hasLayer(layers['noaa-sst'])) {
     map.removeLayer(layers['noaa-sst']);
-    layers['noaa-sst'] = new L.TileLayer.WMSNoCors(
-      'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request',
+    layers['noaa-sst'] = L.tileLayer(
+      'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GHRSST_L4_MUR_Sea_Surface_Temperature/default/' + yr + '-07-01/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
       {
-        layers: 'jplMURSST41:analysed_sst',
-        format: 'image/png', transparent: true,
         opacity: currentOpacity,
-        time: `${yr}-07-01T09:00:00Z`,
-        attribution: 'NASA JPL MUR SST',
-        version: '1.3.0'
+        attribution: 'NASA GIBS / JPL MUR SST',
+        maxZoom: 7,
+        tileSize: 256
       }
     ).addTo(map);
   }
