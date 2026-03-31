@@ -812,7 +812,6 @@ function addWMS(id, url, layerName, opts = {}) {
     transparent: true,
     opacity: currentOpacity,
     attribution: opts.attr || '',
-    crossOrigin: null,
     ...opts
   });
 }
@@ -821,39 +820,59 @@ function addTile(id, url, attr) {
   layers[id] = L.tileLayer(url, { opacity: currentOpacity, attribution: attr, maxZoom: 18 });
 }
 
+// Fix CORB: override createTile to remove crossorigin attribute
+L.TileLayer.WMSNoCors = L.TileLayer.WMS.extend({
+  createTile: function(coords, done) {
+    var tile = L.TileLayer.WMS.prototype.createTile.call(this, coords, done);
+    tile.removeAttribute('crossorigin');
+    return tile;
+  }
+});
+
+function addWMSNoCors(id, url, layerName, opts = {}) {
+  layers[id] = new L.TileLayer.WMSNoCors(url, {
+    layers: layerName,
+    format: 'image/png',
+    transparent: true,
+    opacity: opts.opacity || currentOpacity,
+    attribution: opts.attr || '',
+    ...opts
+  });
+}
+
 // ── NOAA DHW WMS ─────────────────────────────────────────
-addWMS('noaa-dhw',
+addWMSNoCors('noaa-dhw',
   'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request',
   'jplMURSST41:analysed_sst',
   { attr: 'NASA JPL MUR SST / NOAA CoastWatch', version: '1.3.0' }
 );
 
 // ── NASA JPL MUR SST WMS ─────────────────────────────────
-addWMS('noaa-sst',
+addWMSNoCors('noaa-sst',
   'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request',
   'jplMURSST41:analysed_sst',
   { attr: 'NASA JPL MUR SST v4.1 / NOAA CoastWatch', version: '1.3.0' }
 );
 
 // ── Allen Coral Atlas tiles (public) ─────────────────────
-addWMS('aca-benthic',
+addWMSNoCors('aca-benthic',
   'https://allencoralatlas.org/geoserver/ows',
   'coral-atlas:benthic',
   { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
 );
-addWMS('aca-geomorph',
+addWMSNoCors('aca-geomorph',
   'https://allencoralatlas.org/geoserver/ows',
   'coral-atlas:geomorphic',
   { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
 );
-addWMS('aca-bleach',
+addWMSNoCors('aca-bleach',
   'https://allencoralatlas.org/geoserver/ows',
   'coral-atlas:coral',
   { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
 );
 
 // ── Mangrove WMS (Global Mangrove Watch) ────────────────
-layers['mangrove'] = L.tileLayer.wms(
+layers['mangrove'] = new L.TileLayer.WMSNoCors(
   'https://apps.globalmangrovewatch.org/api/geoserver/gmw/wms',
   {
     layers: 'gmw:gmw_v3_2020',
@@ -861,13 +880,12 @@ layers['mangrove'] = L.tileLayer.wms(
     transparent: true,
     opacity: currentOpacity,
     attribution: 'Global Mangrove Watch v3 / JAXA',
-    version: '1.1.1',
-    crossOrigin: null
+    version: '1.1.1'
   }
 );
 
 // ── WDPA Marine Protected Areas (UNEP-WCMC MapServer WMS) ──
-layers['wdpa-marine'] = L.tileLayer.wms(
+layers['wdpa-marine'] = new L.TileLayer.WMSNoCors(
   'https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/MapServer/WMSServer',
   {
     layers: '0,1',
@@ -876,20 +894,19 @@ layers['wdpa-marine'] = L.tileLayer.wms(
     opacity: currentOpacity,
     attribution: 'UNEP-WCMC & IUCN (WDPA)',
     version: '1.1.1',
-    srs: 'EPSG:3857',
-    crossOrigin: null
+    srs: 'EPSG:3857'
   }
 );
 
 // ── MPA stress + unprotected (NASA MUR SST anomaly as proxy) ──
-addWMS('mpa-stress',
+addWMSNoCors('mpa-stress',
   'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41anom1day/request',
   'jplMURSST41anom1day:sstAnom',
   { attr: 'NASA JPL MUR SST Anomaly', opacity: 0.65, version: '1.3.0' }
 );
 
 // Pulsing red layer uses same source
-layers['unprotected-bio'] = L.tileLayer.wms(
+layers['unprotected-bio'] = new L.TileLayer.WMSNoCors(
   'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41anom1day/request',
   {
     layers: 'jplMURSST41anom1day:sstAnom',
@@ -897,8 +914,7 @@ layers['unprotected-bio'] = L.tileLayer.wms(
     transparent: true,
     opacity: 0.7,
     attribution: 'NASA JPL MUR SST Anomaly',
-    version: '1.3.0',
-    crossOrigin: null
+    version: '1.3.0'
   }
 );
 
@@ -1094,7 +1110,7 @@ document.getElementById('sst-year').addEventListener('input', e => {
   // Update SST layer URL with new year (NOAA ERDDAP supports time param)
   if (layers['noaa-sst'] && map.hasLayer(layers['noaa-sst'])) {
     map.removeLayer(layers['noaa-sst']);
-    layers['noaa-sst'] = L.tileLayer.wms(
+    layers['noaa-sst'] = new L.TileLayer.WMSNoCors(
       'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request',
       {
         layers: 'jplMURSST41:analysed_sst',
@@ -1102,8 +1118,7 @@ document.getElementById('sst-year').addEventListener('input', e => {
         opacity: currentOpacity,
         time: `${yr}-07-01T09:00:00Z`,
         attribution: 'NASA JPL MUR SST',
-        version: '1.3.0',
-        crossOrigin: null
+        version: '1.3.0'
       }
     ).addTo(map);
   }
