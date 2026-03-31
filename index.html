@@ -864,19 +864,17 @@ layers['mangrove'] = L.tileLayer.wms(
   }
 );
 
-// ── WDPA Marine Protected Areas (ArcGIS Feature Service tiles) ──
-layers['wdpa-marine'] = L.tileLayer(
-  'https://tiles.arcgis.com/tiles/wlVTGRSYTzAbjjiC/arcgis/rest/services/WDPA_v0/VectorTileServer/tile/{z}/{y}/{x}.pbf',
-  { opacity: currentOpacity, attribution: 'UNEP-WCMC & IUCN (WDPA)', maxZoom: 18 }
-);
-// Fallback: use the ArcGIS MapServer image export as tiles
-layers['wdpa-marine'] = L.tileLayer(
-  'https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/MapServer/export?bbox={bbox}&bboxSR=3857&imageSR=3857&size=256,256&f=image&format=png32&transparent=true&layers=show:0,1',
+// ── WDPA Marine Protected Areas (UNEP-WCMC MapServer WMS) ──
+layers['wdpa-marine'] = L.tileLayer.wms(
+  'https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/MapServer/WMSServer',
   {
+    layers: '0,1',
+    format: 'image/png',
+    transparent: true,
     opacity: currentOpacity,
     attribution: 'UNEP-WCMC & IUCN (WDPA)',
-    maxZoom: 18,
-    tileSize: 256
+    version: '1.1.1',
+    srs: 'EPSG:3857'
   }
 );
 
