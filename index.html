@@ -11,6 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script src="https://unpkg.com/pmtiles@3.0.6/dist/pmtiles.js"></script>
 <script src="https://unpkg.com/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.min.js"></script>
 <style>
 :root {
   --ocean-deep: #020c18;
@@ -974,6 +975,11 @@ function loadLFPLayer(lfpNum, show) {
 
   try {
     const pmtilesUrl = LFP_FILES[lfpNum];
+    
+    // Register PMTiles protocol for this source
+    const p = new pmtiles.PMTiles(pmtilesUrl);
+    
+    // Use protomaps-leaflet which handles PMTiles natively
     const layer = protomapsL.leafletLayer({
       url: pmtilesUrl,
       paint_rules: [
@@ -981,14 +987,22 @@ function loadLFPLayer(lfpNum, show) {
           dataLayer: 'mpa',
           symbolizer: new protomapsL.PolygonSymbolizer({
             fill: LFP_COLORS[lfpNum],
-            opacity: 0.55,
-            stroke: LFP_COLORS[lfpNum],
-            width: 1
+            opacity: 0.7
+          })
+        },
+        {
+          dataLayer: 'mpa',
+          symbolizer: new protomapsL.LineSymbolizer({
+            color: LFP_COLORS[lfpNum],
+            width: 1.5,
+            opacity: 1
           })
         }
       ],
       label_rules: [],
-      attribution: 'ProtectedSeas Navigator LFP ' + lfpNum
+      attribution: 'ProtectedSeas Navigator LFP ' + lfpNum,
+      maxDataZoom: 12,
+      debug: true
     });
     layer.addTo(map);
     layers[id] = layer;
@@ -1026,9 +1040,17 @@ function applyPulse(on) {
 }
 
 // Wire up LFP checkboxes via PMTiles loaders
-document.getElementById('lfp-combined').addEventListener('change', e => loadNavigatorPMTiles(e.target.checked));
+document.getElementById('lfp-combined').addEventListener('change', e => {
+  console.log('LFP combined toggled:', e.target.checked);
+  loadNavigatorPMTiles(e.target.checked);
+});
 [1,2,3,4,5].forEach(n => {
-  document.getElementById('lfp'+n).addEventListener('change', e => loadLFPLayer(n, e.target.checked));
+  const el = document.getElementById('lfp'+n);
+  console.log('Wiring lfp'+n, el);
+  el.addEventListener('change', e => {
+    console.log('LFP'+n+' toggled:', e.target.checked);
+    loadLFPLayer(n, e.target.checked);
+  });
 });
 
 // Wire up all other checkboxes
