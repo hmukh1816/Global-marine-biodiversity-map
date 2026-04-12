@@ -10,7 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script src="https://unpkg.com/pmtiles@3.0.6/dist/pmtiles.js"></script>
-<script src="https://unpkg.com/protomaps-leaflet@4.0.0/dist/protomaps-leaflet.min.js"></script>
+<script src="https://unpkg.com/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.js"></script>
 <style>
 :root {
   --ocean-deep: #020c18;
@@ -974,10 +974,9 @@ function loadLFPLayer(lfpNum, show) {
 
   try {
     const pmtilesUrl = LFP_FILES[lfpNum];
-    const p = new pmtiles.PMTiles(pmtilesUrl);
-    protomapsL.leafletLayer({
+    const layer = protomapsL.leafletLayer({
       url: pmtilesUrl,
-      paintRules: [
+      paint_rules: [
         {
           dataLayer: 'mpa',
           symbolizer: new protomapsL.PolygonSymbolizer({
@@ -988,12 +987,11 @@ function loadLFPLayer(lfpNum, show) {
           })
         }
       ],
-      labelRules: [],
+      label_rules: [],
       attribution: 'ProtectedSeas Navigator LFP ' + lfpNum
-    }).addTo(map);
-
-    // Store reference — protomaps returns the layer synchronously
-    layers[id] = map._layers[Object.keys(map._layers).pop()];
+    });
+    layer.addTo(map);
+    layers[id] = layer;
 
     navigatorLayerLoaded = true;
     document.getElementById('gee-status').innerHTML = `✅ LFP${lfpNum} loaded`;
