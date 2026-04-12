@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+<script src="https://unpkg.com/pmtiles@3.0.6/dist/pmtiles.js"></script>
+<script src="https://unpkg.com/protomaps-leaflet@4.0.0/dist/protomaps-leaflet.min.js"></script>
 <style>
 :root {
   --ocean-deep: #020c18;
@@ -706,7 +708,7 @@ input[type=range] {
       <div id="obis-placeholder">
         <div class="big">🔬</div>
         <div><b>Click anywhere on the map</b> to query OBIS biodiversity data</div>
-        <div style="font-size:0.68rem">A teal box will mark your selected ~5×5 km area</div>
+        <div style="font-size:0.68rem">A teal box will mark your selected ~20×20 km area</div>
       </div>
       <div id="obis-loading">
         <div class="spinner"></div>
@@ -757,11 +759,11 @@ const NAVIGATOR_GEOJSON = 'data/navigator_eez.geojson'; // ← place your file h
 const NAVIGATOR_HS_GEOJSON = 'data/navigator_highseas.geojson'; // ← optional high seas
 
 const LFP_COLORS = {
-  1: '#064e3b',
-  2: '#059669',
-  3: '#34d399',
-  4: '#a7f3d0',
-  5: '#d1fae5'
+  1: '#ff4444',
+  2: '#ff8c00',
+  3: '#ffd700',
+  4: '#7ecf7e',
+  5: '#00bfff'
 };
 
 const EXCLUDE_PHYLA = new Set([
@@ -894,21 +896,16 @@ try {
   );
 } catch(e) { console.warn('Mangrove layer failed to init:', e); }
 
-// ── WDPA Marine Protected Areas (UNEP-WCMC MapServer WMS) ──
-try {
-  layers['wdpa-marine'] = new L.TileLayer.WMSNoCors(
-    'https://data-gis.unep-wcmc.org/server/rest/services/ProtectedSites/The_World_Database_of_Protected_Areas/MapServer/WMSServer',
-    {
-      layers: '0,1',
-      format: 'image/png',
-      transparent: true,
-      opacity: currentOpacity,
-      attribution: 'UNEP-WCMC & IUCN (WDPA)',
-      version: '1.1.1',
-      srs: 'EPSG:3857'
-    }
-  );
-} catch(e) { console.warn('WDPA layer failed to init:', e); }
+// ── WDPA Marine Protected Areas (ArcGIS Online — proper CORS) ──
+layers['wdpa-marine'] = L.tileLayer(
+  'https://tiles.arcgis.com/tiles/wlVTGRSYTzAbjjiC/arcgis/rest/services/WDPA_v0/MapServer/tile/{z}/{y}/{x}',
+  {
+    opacity: currentOpacity,
+    attribution: 'UNEP-WCMC & IUCN (WDPA) via ArcGIS',
+    maxZoom: 12,
+    tileSize: 256
+  }
+);
 
 // ── MPA stress + unprotected (NASA GIBS SST Anomaly as proxy) ──
 layers['mpa-stress'] = L.tileLayer(
@@ -928,10 +925,13 @@ layers['unprotected-bio'] = L.tileLayer(
 // ─────────────────────────────────────────────────────────
 // NAVIGATOR GEOJSON — loaded from GitHub Releases
 // ─────────────────────────────────────────────────────────
+const R2_BASE = 'https://pub-0d46efac8df24e82a97a743af5bbbd17.r2.dev';
 const LFP_FILES = {
-  3: 'https://corsproxy.io/?https://github.com/hmukh1816/Biosea-atlas/releases/download/v1.0/navigator_lfp3.geojson',
-  4: 'https://corsproxy.io/?https://github.com/hmukh1816/Biosea-atlas/releases/download/v1.0/navigator_lfp4.geojson',
-  5: 'https://corsproxy.io/?https://github.com/hmukh1816/Biosea-atlas/releases/download/v1.0/navigator_lfp5.geojson',
+  1: R2_BASE + '/lfp1.pmtiles',
+  2: R2_BASE + '/lfp2.pmtiles',
+  3: R2_BASE + '/lfp3.pmtiles',
+  4: R2_BASE + '/lfp4.pmtiles',
+  5: R2_BASE + '/lfp5.pmtiles',
 };
 
 let navigatorVectorLayer = null;
@@ -948,7 +948,7 @@ function lfpStyle(lfpNum) {
 
 function loadNavigatorPMTiles(show) {
   if (!show) {
-    [3,4,5].forEach(n => {
+    [1,2,3,4,5].forEach(n => {
       if (layers['lfp'+n] && map.hasLayer(layers['lfp'+n])) {
         map.removeLayer(layers['lfp'+n]);
         document.getElementById('lfp'+n).checked = false;
@@ -972,33 +972,37 @@ function loadLFPLayer(lfpNum, show) {
 
   document.getElementById('gee-status').innerHTML = `⏳ Loading LFP${lfpNum}...`;
 
-  fetch(LFP_FILES[lfpNum])
-    .then(r => {
-      if (!r.ok) throw new Error('Failed to fetch LFP' + lfpNum);
-      return r.json();
-    })
-    .then(data => {
-      // Store for MPA status checks
-      if (!navigatorData) navigatorData = { features: [] };
-      navigatorData.features = navigatorData.features.concat(data.features);
-
-      layers[id] = L.geoJSON(data, {
-        style: () => lfpStyle(lfpNum),
-        onEachFeature: (feature, layer) => {
-          const name = feature.properties.Name || feature.properties.name || feature.properties.SITE_NAME || 'MPA';
-          layer.bindTooltip(`<b>${name}</b><br>LFP Score: ${lfpNum}`, { sticky: true });
+  try {
+    const pmtilesUrl = LFP_FILES[lfpNum];
+    const p = new pmtiles.PMTiles(pmtilesUrl);
+    protomapsL.leafletLayer({
+      url: pmtilesUrl,
+      paintRules: [
+        {
+          dataLayer: 'mpa',
+          symbolizer: new protomapsL.PolygonSymbolizer({
+            fill: LFP_COLORS[lfpNum],
+            opacity: 0.55,
+            stroke: LFP_COLORS[lfpNum],
+            width: 1
+          })
         }
-      }).addTo(map);
+      ],
+      labelRules: [],
+      attribution: 'ProtectedSeas Navigator LFP ' + lfpNum
+    }).addTo(map);
 
-      navigatorLayerLoaded = true;
-      document.getElementById('gee-status').innerHTML = '✅ Navigator layers loaded (LFP 3–5)';
-      document.getElementById('gee-status').style.borderColor = 'rgba(0,212,200,0.25)';
-    })
-    .catch(err => {
-      document.getElementById('gee-status').innerHTML = `⚠️ LFP${lfpNum} failed to load`;
-      document.getElementById('gee-status').style.borderColor = 'rgba(255,100,100,0.3)';
-      console.error(err);
-    });
+    // Store reference — protomaps returns the layer synchronously
+    layers[id] = map._layers[Object.keys(map._layers).pop()];
+
+    navigatorLayerLoaded = true;
+    document.getElementById('gee-status').innerHTML = `✅ LFP${lfpNum} loaded`;
+    document.getElementById('gee-status').style.borderColor = 'rgba(0,212,200,0.25)';
+  } catch(err) {
+    document.getElementById('gee-status').innerHTML = `⚠️ LFP${lfpNum} failed to load`;
+    document.getElementById('gee-status').style.borderColor = 'rgba(255,100,100,0.3)';
+    console.error('LFP load error:', err);
+  }
 }
 
 // ─────────────────────────────────────────────────────────
@@ -1188,7 +1192,7 @@ document.addEventListener('click', e => {
 // ─────────────────────────────────────────────────────────
 // OBIS CLICK HANDLER
 // ─────────────────────────────────────────────────────────
-const OBIS_DELTA = 0.0225;
+const OBIS_DELTA = 0.09;
 
 const TAXON_GROUPS = {
   'Actinopterygii':  { label: 'Ray-finned Fish',    color: '#00d4c8' },
@@ -1361,7 +1365,7 @@ function renderOBIS({ lat, lng, totalSpecies, totalRecords, coralSpecies, taxonC
       <div class="obis-loc-bar">
         <div>
           <div class="obis-loc-coords">${latStr} &nbsp;|&nbsp; ${lngStr}</div>
-          <div class="obis-loc-sub">±0.0225° box · ~5×5 km · click map to move</div>
+          <div class="obis-loc-sub">±0.09° box · ~20×20 km · click map to move</div>
         </div>
         <div class="obis-live-badge">OBIS LIVE</div>
       </div>
