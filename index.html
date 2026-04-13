@@ -862,38 +862,75 @@ layers['noaa-dhw'] = L.tileLayer(
   { opacity: currentOpacity, attribution: 'NASA GIBS / JPL MUR SST Anomaly', maxZoom: 7, tileSize: 256 }
 );
 
-// ── Allen Coral Atlas tiles (public) ─────────────────────
+// ── Allen Coral Atlas via Cloudflare Worker proxy ─────────
+const PROXY = 'https://biosea-proxy.hansamukherjee01.workers.dev/?url=';
+const ACA_WMS = 'https://allencoralatlas.org/geoserver/ows';
+const GMW_WMS = 'https://apps.globalmangrovewatch.org/api/geoserver/gmw/wms';
+
+// Custom WMS layer that routes through CORS proxy
+L.TileLayer.WMSProxy = L.TileLayer.WMS.extend({
+  _proxyBase: '',
+  initialize: function(proxyBase, wmsUrl, options) {
+    this._proxyBase = proxyBase;
+    this._realWmsUrl = wmsUrl;
+    L.TileLayer.WMS.prototype.initialize.call(this, wmsUrl, options);
+  },
+  getTileUrl: function(coords) {
+    // Get the normal WMS URL that Leaflet builds
+    var origUrl = L.TileLayer.WMS.prototype.getTileUrl.call(this, coords);
+    // Route through proxy
+    return this._proxyBase + encodeURIComponent(origUrl);
+  },
+  createTile: function(coords, done) {
+    var tile = L.TileLayer.WMS.prototype.createTile.call(this, coords, done);
+    tile.removeAttribute('crossorigin');
+    return tile;
+  }
+});
+
 try {
-  addWMSNoCors('aca-benthic',
-    'https://allencoralatlas.org/geoserver/ows',
-    'coral-atlas:benthic',
-    { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
-  );
-  addWMSNoCors('aca-geomorph',
-    'https://allencoralatlas.org/geoserver/ows',
-    'coral-atlas:geomorphic',
-    { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
-  );
-  addWMSNoCors('aca-bleach',
-    'https://allencoralatlas.org/geoserver/ows',
-    'coral-atlas:coral',
-    { attr: 'Allen Coral Atlas / Arizona State University', version: '1.1.1', srs: 'EPSG:3857' }
-  );
+  layers['aca-benthic'] = new L.TileLayer.WMSProxy(PROXY, ACA_WMS, {
+    layers: 'coral-atlas:benthic_data_verbose',
+    format: 'image/png',
+    transparent: true,
+    opacity: currentOpacity,
+    attribution: 'Allen Coral Atlas / Arizona State University',
+    version: '1.1.1',
+    srs: 'EPSG:4326'
+  });
+  layers['aca-geomorph'] = new L.TileLayer.WMSProxy(PROXY, ACA_WMS, {
+    layers: 'coral-atlas:geomorphic_data_verbose',
+    format: 'image/png',
+    transparent: true,
+    opacity: currentOpacity,
+    attribution: 'Allen Coral Atlas / Arizona State University',
+    version: '1.1.1',
+    srs: 'EPSG:4326'
+  });
+  // Bleaching not available via WMS — use benthic as reef extent proxy
+  layers['aca-bleach'] = new L.TileLayer.WMSProxy(PROXY, ACA_WMS, {
+    layers: 'coral-atlas:benthic_data_verbose',
+    format: 'image/png',
+    transparent: true,
+    opacity: currentOpacity,
+    attribution: 'Allen Coral Atlas / Arizona State University',
+    version: '1.1.1',
+    srs: 'EPSG:4326',
+    styles: 'polygon'
+  });
 } catch(e) { console.warn('Allen Coral Atlas layers failed to init:', e); }
 
-// ── Mangrove WMS (Global Mangrove Watch) ────────────────
+// ── Mangrove WMS via proxy ────────────────
 try {
-  layers['mangrove'] = new L.TileLayer.WMSNoCors(
-    'https://apps.globalmangrovewatch.org/api/geoserver/gmw/wms',
-    {
-      layers: 'gmw:gmw_v3_2020',
-      format: 'image/png',
-      transparent: true,
-      opacity: currentOpacity,
-      attribution: 'Global Mangrove Watch v3 / JAXA',
-      version: '1.1.1'
-    }
-  );
+  layers['mangrove'] = new L.TileLayer.WMSProxy(PROXY, GMW_WMS, {
+    layers: 'gmw:gmw_v3_2020',
+    format: 'image/png',
+    transparent: true,
+    opacity: currentOpacity,
+    attribution: 'Global Mangrove Watch v3 / JAXA',
+    version: '1.1.1',
+    srs: 'EPSG:4326'
+  });
 } catch(e) { console.warn('Mangrove layer failed to init:', e); }
 
 // ── WDPA Marine Protected Areas (ArcGIS Online — proper CORS) ──
