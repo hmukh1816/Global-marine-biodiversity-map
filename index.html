@@ -468,12 +468,12 @@ input[type=range] {
       <div class="header-logo">🌊 BioSea Atlas</div>
       <div class="header-sub">Global Marine Biodiversity &amp; Conservation Explorer</div>
     </div>
-    <div class="header-badge">LIVE · OBIS + GEE</div>
+    <div class="header-badge">LIVE · OBIS + GIBS + GFW</div>
     <div class="stat-pill">
-      <div><div class="val" id="stat-mpa">—</div><div class="lbl">MPA Coverage</div></div>
+      <div><div class="val" id="stat-species">1,221</div><div class="lbl">Shark &amp; Ray Species</div></div>
     </div>
     <div class="stat-pill">
-      <div><div class="val" id="stat-stress">—</div><div class="lbl">Stressed Reefs</div></div>
+      <div><div class="val" id="stat-cells">37,630</div><div class="lbl">Richness Cells</div></div>
     </div>
   </div>
   <div class="header-right">
@@ -492,20 +492,6 @@ input[type=range] {
   <aside id="sidebar">
 
     <div class="info-box" id="gee-status">⏳ Loading layers…</div>
-
-    <!-- WDPA -->
-    <div class="sb-section">🌍 WDPA Protected Areas</div>
-    <div class="sb-group">
-      <div class="sb-group-title">UN / IUCN World Database</div>
-      <label class="cb-row">
-        <input type="checkbox" id="wdpa-marine">
-        <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Marine Protected Areas (WDPA)</span>
-      </label>
-      <div style="font-size:0.62rem;color:var(--text-dim);margin-top:4px;line-height:1.5">
-        UNEP-WCMC &amp; IUCN global marine protected area boundaries
-      </div>
-    </div>
 
     <!-- NAVIGATOR LFP -->
     <div class="sb-section">🛡 Navigator LFP Protection</div>
@@ -555,29 +541,10 @@ input[type=range] {
       </label>
     </div>
 
-    <!-- CORAL -->
-    <div class="sb-section">🪸 Coral Reef Layers</div>
+    <!-- CLIMATE -->
+    <div class="sb-section">🌡 Ocean Climate</div>
     <div class="sb-group">
-      <div class="sb-group-title">Allen Coral Atlas</div>
-      <label class="cb-row">
-        <input type="checkbox" id="aca-benthic">
-        <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Benthic Habitat Map</span>
-      </label>
-      <label class="cb-row">
-        <input type="checkbox" id="aca-geomorph">
-        <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Geomorphic Zones</span>
-      </label>
-      <label class="cb-row">
-        <input type="checkbox" id="aca-bleach">
-        <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Reef Extent (Traffic Light)</span>
-      </label>
-    </div>
-
-    <div class="sb-group">
-      <div class="sb-group-title">NOAA Ocean Climate</div>
+      <div class="sb-group-title">NOAA / NASA GIBS</div>
       <label class="cb-row">
         <input type="checkbox" id="noaa-sst">
         <span class="cb-box"><span class="cb-check">✓</span></span>
@@ -598,87 +565,33 @@ input[type=range] {
       </div>
     </div>
 
-    <!-- ECOSYSTEMS -->
-    <div class="sb-section">🌿 Coastal Ecosystems</div>
-    <div class="sb-group">
-      <div class="sb-group-title">Global Mangrove Watch v3</div>
-      <label class="cb-row">
-        <input type="checkbox" id="mangrove">
-        <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Mangrove Extent 2020</span>
-      </label>
-    </div>
-
-    <!-- OCEAN HEALTH -->
-    <div class="sb-section">🌊 Ocean Health</div>
-    <div class="sb-group">
-      <div class="sb-group-title">Productivity &amp; Chemistry</div>
-      <label class="cb-row">
-        <input type="checkbox" id="chlorophyll">
-        <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Chlorophyll-a (productivity)</span>
-      </label>
-      <label class="cb-row">
-        <input type="checkbox" id="ocean-co2">
-        <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Ocean Surface CO₂ (acidification)</span>
-      </label>
-    </div>
-
-    <!-- FISHING -->
-    <div class="sb-section">🚢 Fishing Pressure</div>
+    <!-- MARITIME SECURITY -->
+    <div class="sb-section">🚢 Maritime Security</div>
     <div class="sb-group">
       <div class="sb-group-title">Global Fishing Watch</div>
       <label class="cb-row">
         <input type="checkbox" id="gfw-fishing">
         <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Fishing Effort (2016)</span>
+        <span class="cb-label">Fishing Effort (AIS)</span>
+      </label>
+      <label class="cb-row">
+        <input type="checkbox" id="gfw-dark">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Dark Vessels (SAR unmatched)</span>
       </label>
     </div>
 
     <!-- BIODIVERSITY -->
     <div class="sb-section">🦈 Species Richness</div>
     <div class="sb-group">
-      <div class="sb-group-title">IUCN Threatened Species</div>
+      <div class="sb-group-title">IUCN Red List Spatial Data</div>
       <label class="cb-row">
         <input type="checkbox" id="iucn-sharks">
         <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Sharks &amp; Rays density</span>
+        <span class="cb-label">Sharks &amp; Rays richness</span>
       </label>
-      <label class="cb-row">
-        <input type="checkbox" id="iucn-mammals">
-        <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Marine Mammals density</span>
-      </label>
-      <label class="cb-row">
-        <input type="checkbox" id="iucn-tunas">
-        <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Tunas &amp; Billfishes density</span>
-      </label>
-    </div>
-
-    <!-- RISK -->
-    <div class="sb-section">🚨 Risk Analysis</div>
-    <div class="sb-group-alert">
-      <div class="sb-group-title-alert">🟣 MPAs Under Thermal Stress</div>
-      <label class="cb-row">
-        <input type="checkbox" id="mpa-stress">
-        <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">LFP-protected + SST anomaly + reef bleaching overlap</span>
-      </label>
-      <div style="font-size:0.6rem;color:var(--text-dim);margin-top:3px;line-height:1.4">
-        Shows SST anomaly over areas with LFP and coral reef coverage
-      </div>
-    </div>
-    <div class="sb-group-danger">
-      <div class="sb-group-title-danger">🟠 Unprotected + Thermal Stress</div>
-      <label class="cb-row">
-        <input type="checkbox" id="unprotected-stress">
-        <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">SST anomaly + reef outside MPAs</span>
-      </label>
-      <div style="font-size:0.6rem;color:var(--text-dim);margin-top:3px;line-height:1.4">
-        Unprotected coral reefs facing high sea temperatures
+      <div style="font-size:0.62rem;color:var(--text-dim);margin-top:2px;line-height:1.4">
+        1,221 species · 1° grid · extant native ranges
       </div>
     </div>
 
@@ -713,19 +626,6 @@ input[type=range] {
       <div class="lfp-grad-bar"></div>
       <div class="lfp-grad-labels"><span>1 — Strict (blue)</span><span>5 — Minimal (red)</span></div>
 
-      <div style="height:0.6rem"></div>
-      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Protected Areas</div>
-      <div class="legend-row"><div class="ldot" style="background:#3388ff"></div>WDPA Marine Protected Areas</div>
-
-      <div style="height:0.5rem"></div>
-      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Coral Reef (Allen Coral Atlas)</div>
-      <div class="legend-row"><div class="ldot" style="background:#3b1c8c"></div>Benthic — deep/coral</div>
-      <div class="legend-row"><div class="ldot" style="background:#5dc863"></div>Benthic — sand/rubble</div>
-      <div class="legend-row"><div class="ldot" style="background:#fde725"></div>Benthic — algae/seagrass</div>
-      <div class="legend-row"><div class="ldot" style="background:#d62828"></div>Geomorphic — reef crest</div>
-      <div class="legend-row"><div class="ldot" style="background:#003049"></div>Geomorphic — lagoon</div>
-      <div class="legend-row"><div class="ldot" style="background:#00e5ff"></div>Reef extent</div>
-
       <div style="height:0.5rem"></div>
       <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Climate &amp; SST</div>
       <div class="legend-row"><div class="ldot" style="background:#a50026"></div>SST — warmest</div>
@@ -733,38 +633,28 @@ input[type=range] {
       <div class="legend-row"><div class="ldot" style="background:#f9a825"></div>SST Anomaly / DHW</div>
 
       <div style="height:0.5rem"></div>
-      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Ecosystems</div>
-      <div class="legend-row"><div class="ldot" style="background:#1b5e20"></div>Mangrove extent (GMW 2020)</div>
-
-      <div style="height:0.5rem"></div>
-      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Ocean Health</div>
-      <div class="legend-row"><div class="ldot" style="background:#000080"></div><span>Chlorophyll-a — low</span></div>
-      <div class="legend-row"><div class="ldot" style="background:#ff0000"></div><span>Chlorophyll-a — high</span></div>
-      <div class="legend-row"><div class="ldot" style="background:#2166ac"></div><span>Ocean CO₂ — low</span></div>
-      <div class="legend-row"><div class="ldot" style="background:#b2182b"></div><span>Ocean CO₂ — high (acidifying)</span></div>
-
-      <div style="height:0.5rem"></div>
-      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Fishing</div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Maritime Security</div>
       <div class="legend-row"><div class="ldot" style="background:#0C276C"></div><span>Fishing effort — low</span></div>
       <div class="legend-row"><div class="ldot" style="background:#EEFF00"></div><span>Fishing effort — high</span></div>
+      <div class="legend-row"><div class="ldot" style="background:#ff2244;border-radius:50%"></div><span>Dark vessel (SAR unmatched)</span></div>
 
       <div style="height:0.5rem"></div>
-      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Risk Analysis</div>
-      <div class="legend-row"><div class="ldot" style="background:#9b59b6"></div>MPA + thermal stress (protected reefs at risk)</div>
-      <div class="legend-row"><div class="ldot" style="background:#ff6b35"></div>Unprotected + thermal stress</div>
-      <div class="legend-row"><div class="ldot" style="background:#f87171;border-radius:50%"></div>⚠ OBIS alert: unprotected high biodiversity</div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Shark &amp; Ray Richness (IUCN)</div>
+      <div style="height:10px;border-radius:3px;margin:4px 0 2px;background:linear-gradient(to right, #1a237e, #0288d1, #00e5ff, #ffffff)"></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--text-dim)"><span>Low (1 sp.)</span><span>High (158 sp.)</span></div>
 
       <div style="height:0.5rem"></div>
-      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Biodiversity</div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">OBIS Biodiversity</div>
       <div class="legend-row"><div class="ldot" style="background:#00d4c8"></div>OBIS query area (click map)</div>
+      <div class="legend-row"><div class="ldot" style="background:#f87171;border-radius:50%"></div>⚠ OBIS alert: unprotected high biodiversity</div>
     </div>
   </aside>
 
   <!-- ── MAP + PANEL COLUMN ── -->
   <div id="map-col">
     <div id="map"></div>
-    <button id="panel-toggle">▲ OBIS</button>
-    <div id="obis-panel">
+    <button id="panel-toggle" style="bottom:0">▲ OBIS</button>
+    <div id="obis-panel" style="height:0">
       <div id="obis-placeholder">
         <div class="big">🔬</div>
         <div><b>Click anywhere on the map</b> to query OBIS biodiversity data</div>
@@ -783,25 +673,19 @@ input[type=range] {
 <button id="citations-toggle" onclick="toggleCitations()">📚 Sources</button>
 <div id="citations">
   <div class="cite-entry">
-    <strong style="color:var(--teal-dim)">WDPA</strong> — UNEP-WCMC and IUCN (2025), Protected Planet: The World Database on Protected Areas (WDPA). Cambridge, UK: UNEP-WCMC and IUCN. <a href="https://www.protectedplanet.net" target="_blank">protectedplanet.net</a>
-  </div>
-  <div class="cite-entry">
     <strong style="color:var(--teal-dim)">ProtectedSeas Navigator</strong> — Zetterlind et al. (2025). Navigator - a global database of verified marine protected and managed area regulations and boundaries. <em>Scientific Data</em>, 12, 1212. <a href="https://doi.org/10.1038/s41597-025-05535-2" target="_blank">doi:10.1038/s41597-025-05535-2</a>
   </div>
   <div class="cite-entry">
-    <strong style="color:var(--teal-dim)">Allen Coral Atlas</strong> — Lyons et al. (2020). Mapping the world's coral reefs using a global multiscale earth observation framework. <em>Remote Sensing in Ecology and Conservation</em>. Arizona State University. <a href="https://allencoralatlas.org" target="_blank">allencoralatlas.org</a>
-  </div>
-  <div class="cite-entry">
-    <strong style="color:var(--teal-dim)">NOAA Coral Reef Watch</strong> — Liu et al. (2014). NOAA Coral Reef Watch's 5km satellite coral bleaching heat stress monitoring product suite. <em>NOAA Technical Report NESDIS</em> 145. <a href="https://coralreefwatch.noaa.gov" target="_blank">coralreefwatch.noaa.gov</a>
-  </div>
-  <div class="cite-entry">
-    <strong style="color:var(--teal-dim)">Global Mangrove Watch</strong> — Bunting et al. (2018). The Global Mangrove Watch — A New 2010 Global Baseline of Mangrove Extent. <em>Remote Sensing</em>, 10(10), 1669. JAXA. <a href="https://doi.org/10.3390/rs10101669" target="_blank">doi:10.3390/rs10101669</a>
+    <strong style="color:var(--teal-dim)">NOAA / NASA GIBS</strong> — JPL MUR SST &amp; SST Anomaly via NASA GIBS WMTS. <a href="https://gibs.earthdata.nasa.gov" target="_blank">gibs.earthdata.nasa.gov</a>
   </div>
   <div class="cite-entry">
     <strong style="color:var(--teal-dim)">IUCN Red List</strong> — IUCN (2024). The IUCN Red List of Threatened Species. Version 2024-2. <a href="https://www.iucnredlist.org" target="_blank">iucnredlist.org</a>
   </div>
   <div class="cite-entry">
     <strong style="color:var(--teal-dim)">OBIS</strong> — Ocean Biodiversity Information System (2024). Ocean Biodiversity Information System. Intergovernmental Oceanographic Commission of UNESCO. <a href="https://obis.org" target="_blank">obis.org</a>
+  </div>
+  <div class="cite-entry">
+    <strong style="color:var(--teal-dim)">Global Fishing Watch</strong> — Kroodsma et al. (2018). Tracking the global footprint of fisheries. <em>Science</em>, 359(6378), 904–908. Paolo et al. (2024). Satellite mapping reveals extensive industrial activity at sea. <em>Nature</em>, 625, 85–91. <a href="https://globalfishingwatch.org" target="_blank">globalfishingwatch.org</a>
   </div>
   <div class="cite-entry">
     <strong style="color:var(--teal-dim)">Google Earth Engine</strong> — Gorelick et al. (2017). Google Earth Engine: Planetary-scale geospatial analysis for everyone. <em>Remote Sensing of Environment</em>, 202, 18–27.
@@ -815,8 +699,8 @@ input[type=range] {
 // ─────────────────────────────────────────────────────────
 // CONFIG
 // ─────────────────────────────────────────────────────────
-const NAVIGATOR_GEOJSON = 'data/navigator_eez.geojson'; // ← place your file here
-const NAVIGATOR_HS_GEOJSON = 'data/navigator_highseas.geojson'; // ← optional high seas
+const NAVIGATOR_GEOJSON = 'data/navigator_eez.geojson';
+const NAVIGATOR_HS_GEOJSON = 'data/navigator_highseas.geojson';
 
 const LFP_COLORS = {
   1: '#1e6fff',
@@ -922,66 +806,16 @@ layers['noaa-dhw'] = L.tileLayer(
   { opacity: currentOpacity, attribution: 'NASA GIBS / JPL MUR SST Anomaly', maxZoom: 7, tileSize: 256 }
 );
 
-// ── Allen Coral Atlas via Google Earth Engine tiles ─────────
-layers['aca-benthic'] = L.tileLayer(
-  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/57feea2fa30314803bac2c2d4dae023f-6fee0f60b72dbc4dfb2bb30ff623572a/tiles/{z}/{x}/{y}',
-  { opacity: currentOpacity, attribution: 'Allen Coral Atlas / ASU via GEE', maxZoom: 14 }
-);
-layers['aca-geomorph'] = L.tileLayer(
-  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/733db65c3b300974d3f6ef702b93947a-94480c6727a0330703cd17d4a7311ad1/tiles/{z}/{x}/{y}',
-  { opacity: currentOpacity, attribution: 'Allen Coral Atlas / ASU via GEE', maxZoom: 14 }
-);
-layers['aca-bleach'] = L.tileLayer(
-  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/a8533137bb2c8a350396542d497728ae-d796f4ddee493d27c7b8c71ec370e069/tiles/{z}/{x}/{y}',
-  { opacity: currentOpacity, attribution: 'Allen Coral Atlas / ASU via GEE', maxZoom: 14 }
-);
+// ── Global Fishing Watch — via 4Wings API ──────────────────
+const GFW_API_TOKEN = '';
 
-// ── Global Mangrove Watch v3 (2020) via GEE ────────────────
-layers['mangrove'] = L.tileLayer(
-  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/d856842288e3630174d3e409aa0dac68-b5f1e8069d59ae540f3b9a1451565413/tiles/{z}/{x}/{y}',
-  { opacity: currentOpacity, attribution: 'Global Mangrove Watch v3 / JAXA via GEE', maxZoom: 14 }
-);
-
-// ── Global Fishing Watch — fishing effort 2016 via GEE ──────
 layers['gfw-fishing'] = L.tileLayer(
   'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/444940a29492ccb7d8146108efb0f159-802b59da32e183a1e6d97d34163fa52b/tiles/{z}/{x}/{y}',
-  { opacity: currentOpacity, attribution: 'Global Fishing Watch via GEE', maxZoom: 12 }
+  { opacity: currentOpacity, attribution: 'Global Fishing Watch', maxZoom: 12 }
 );
 
-// ── Chlorophyll-a (MODIS Aqua) — ocean productivity ─────────
-layers['chlorophyll'] = L.tileLayer(
-  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/43fcfd1d5a5515f856035f8aca654781-2e6537eb8b1f5c3e56366ba2ddbc3987/tiles/{z}/{x}/{y}',
-  { opacity: currentOpacity, attribution: 'NASA MODIS Aqua Chlorophyll-a via GEE', maxZoom: 10 }
-);
-
-// ── Ocean CO2 (Copernicus BGC) — acidification proxy ────────
-layers['ocean-co2'] = L.tileLayer(
-  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/068726206daf6c6ea37cf112be221651-3304b4864728f56a2c5a0c6290ebe707/tiles/{z}/{x}/{y}',
-  { opacity: currentOpacity, attribution: 'Copernicus Marine BGC CO2 via GEE', maxZoom: 10 }
-);
-
-// ── WDPA Marine Protected Areas (ArcGIS Online — proper CORS) ──
-layers['wdpa-marine'] = L.tileLayer(
-  'https://tiles.arcgis.com/tiles/wlVTGRSYTzAbjjiC/arcgis/rest/services/WDPA_v0/MapServer/tile/{z}/{y}/{x}',
-  {
-    opacity: currentOpacity,
-    attribution: 'UNEP-WCMC & IUCN (WDPA) via ArcGIS',
-    maxZoom: 12,
-    tileSize: 256
-  }
-);
-
-// ── MPA stress (SST Anomaly over protected reef areas) ──
-layers['mpa-stress'] = L.tileLayer(
-  'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GHRSST_L4_MUR_Sea_Surface_Temperature_Anomalies/default/' + gibsDate + '/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
-  { opacity: 0.65, attribution: 'NASA GIBS SST Anomaly — MPA stress overlay', maxZoom: 7, tileSize: 256 }
-);
-
-// ── Unprotected + thermal stress (SST Anomaly over unprotected reefs) ──
-layers['unprotected-stress'] = L.tileLayer(
-  'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GHRSST_L4_MUR_Sea_Surface_Temperature_Anomalies/default/' + gibsDate + '/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
-  { opacity: 0.7, attribution: 'NASA GIBS SST Anomaly — unprotected reef stress', maxZoom: 7, tileSize: 256 }
-);
+// GFW Dark Vessels — requires 4Wings API token
+layers['gfw-dark'] = null;
 
 // ─────────────────────────────────────────────────────────
 // NAVIGATOR PMTILES LOADER
@@ -1116,18 +950,10 @@ document.getElementById('lfp-combined').addEventListener('change', e => {
 
 // Wire up all other checkboxes
 const cbMap = {
-  'wdpa-marine':    'wdpa-marine',
-  'aca-benthic':    'aca-benthic',
-  'aca-geomorph':   'aca-geomorph',
-  'aca-bleach':     'aca-bleach',
   'noaa-sst':       'noaa-sst',
   'noaa-dhw':       'noaa-dhw',
-  'mangrove':       'mangrove',
-  'chlorophyll':    'chlorophyll',
-  'ocean-co2':      'ocean-co2',
   'gfw-fishing':    'gfw-fishing',
-  'mpa-stress':     'mpa-stress',
-  'unprotected-stress':'unprotected-stress',
+  'gfw-dark':       'gfw-dark',
 };
 
 Object.entries(cbMap).forEach(([cbId, layerId]) => {
@@ -1139,6 +965,15 @@ Object.entries(cbMap).forEach(([cbId, layerId]) => {
       loadNavigatorLayer('combined', cbId);
       return;
     }
+    // Special case: GFW dark vessels requires API token
+    if (cbId === 'gfw-dark' && !layers['gfw-dark']) {
+      if (!GFW_API_TOKEN) {
+        document.getElementById('gee-status').innerHTML = '⚠️ Set GFW_API_TOKEN to enable dark vessel layer';
+        document.getElementById('gee-status').style.borderColor = 'rgba(255,100,100,0.3)';
+        el.checked = false;
+        return;
+      }
+    }
     toggleLayer(layerId, el.checked);
     if (cbId === 'noaa-sst' || cbId === 'noaa-dhw') {
       document.getElementById('sst-slider-wrap').style.display =
@@ -1147,39 +982,51 @@ Object.entries(cbMap).forEach(([cbId, layerId]) => {
   });
 });
 
-// IUCN heatmap layers (built from local shapefiles via pre-computed points)
-// These use GeoJSON point data converted from your Drive shapefiles
-const iucnLayers = {
-  'iucn-sharks': null,
-  'iucn-mammals': null,
-  'iucn-tunas': null
-};
+// IUCN Sharks & Rays richness heatmap (from R2-hosted processed data)
+const R2_SHARKS = R2_BASE + '/iucn_sharks_richness_1deg.geojson';
+let sharkLayer = null;
 
-['iucn-sharks','iucn-mammals','iucn-tunas'].forEach(id => {
-  document.getElementById(id).addEventListener('change', e => {
-    if (!iucnLayers[id]) {
-      // Placeholder: load from data/ folder
-      const file = `data/${id}.geojson`;
-      fetch(file)
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (!data) return;
-          const pts = data.features.map(f => {
-            const c = f.geometry.coordinates;
-            return [c[1], c[0], 1];
-          });
-          iucnLayers[id] = L.heatLayer(pts, {
-            radius: 20, blur: 15, maxZoom: 8, opacity: currentOpacity,
-            gradient: { 0.2: '#1a237e', 0.5: '#0288d1', 0.8: '#00e5ff', 1.0: '#ffffff' }
-          });
-          if (e.target.checked) iucnLayers[id].addTo(map);
-        })
-        .catch(() => {});
-    } else {
-      if (e.target.checked) iucnLayers[id].addTo(map);
-      else map.removeLayer(iucnLayers[id]);
-    }
-  });
+document.getElementById('iucn-sharks').addEventListener('change', e => {
+  if (!sharkLayer) {
+    document.getElementById('gee-status').innerHTML = '⏳ Loading shark richness data...';
+    fetch(R2_SHARKS)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) {
+          document.getElementById('gee-status').innerHTML = '⚠️ Shark data failed to load';
+          e.target.checked = false;
+          return;
+        }
+        // Find max species count for normalization
+        const maxN = Math.max(...data.features.map(f => f.properties.n));
+        const pts = data.features.map(f => {
+          const c = f.geometry.coordinates;
+          return [c[1], c[0], f.properties.n / maxN];
+        });
+        sharkLayer = L.heatLayer(pts, {
+          radius: 12, blur: 10, maxZoom: 8, opacity: currentOpacity, minOpacity: 0.15,
+          gradient: {
+            0.0: 'rgba(0,0,40,0)',
+            0.15: '#1a237e',
+            0.35: '#0d47a1',
+            0.5: '#0288d1',
+            0.65: '#00bcd4',
+            0.8: '#00e5ff',
+            0.95: '#e0f7fa',
+            1.0: '#ffffff'
+          }
+        });
+        if (e.target.checked) sharkLayer.addTo(map);
+        document.getElementById('gee-status').innerHTML = `✅ Shark richness loaded (${data.features.length.toLocaleString()} cells, max ${maxN} species)`;
+      })
+      .catch(err => {
+        document.getElementById('gee-status').innerHTML = '⚠️ Shark data fetch error';
+        e.target.checked = false;
+      });
+  } else {
+    if (e.target.checked) sharkLayer.addTo(map);
+    else map.removeLayer(sharkLayer);
+  }
 });
 
 // ─────────────────────────────────────────────────────────
@@ -1219,12 +1066,6 @@ document.getElementById('sst-year').addEventListener('input', e => {
 // ─────────────────────────────────────────────────────────
 // STATS BAR (static estimates — update when data loads)
 // ─────────────────────────────────────────────────────────
-function updateStats() {
-  document.getElementById('stat-mpa').textContent = '8.2%';
-  document.getElementById('stat-stress').textContent = '54%';
-}
-updateStats();
-
 // ─────────────────────────────────────────────────────────
 // SEARCH
 // ─────────────────────────────────────────────────────────
@@ -1360,6 +1201,13 @@ map.on('click', async e => {
   queryBox.bindTooltip(`OBIS query · ${lat.toFixed(3)}°, ${lng.toFixed(3)}°`);
 
   // Show panel + loading
+  if (!panelOpen) {
+    panelOpen = true;
+    document.getElementById('obis-panel').style.height = 'var(--panel-h)';
+    document.getElementById('panel-toggle').textContent = '▼ OBIS';
+    document.getElementById('panel-toggle').style.bottom = 'var(--panel-h)';
+    setTimeout(() => map.invalidateSize(), 300);
+  }
   document.getElementById('obis-placeholder').style.display = 'none';
   document.getElementById('obis-content').style.display = 'none';
   document.getElementById('obis-loading').style.display = 'flex';
@@ -1527,7 +1375,7 @@ function renderOBIS({ lat, lng, totalSpecies, totalRecords, coralSpecies, taxonC
 // ─────────────────────────────────────────────────────────
 // PANEL TOGGLE
 // ─────────────────────────────────────────────────────────
-let panelOpen = true;
+let panelOpen = false;
 document.getElementById('panel-toggle').addEventListener('click', () => {
   panelOpen = !panelOpen;
   const panel = document.getElementById('obis-panel');
