@@ -457,6 +457,27 @@ input[type=range] {
   to   { opacity: 1; transform: translateY(0); }
 }
 .fade-up { animation: fadeUp 0.3s ease forwards; }
+
+/* shark grid cells */
+.shark-popup { font-family: 'Instrument Sans', sans-serif; min-width: 220px; }
+.shark-popup h3 { font-family: 'Syne', sans-serif; font-size: 0.82rem; color: #00d4c8; margin: 0 0 6px; }
+.shark-popup .sp-stats { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.shark-popup .sp-tag {
+  font-size: 0.6rem; padding: 2px 6px; border-radius: 3px;
+  font-family: 'Syne', sans-serif; font-weight: 600; letter-spacing: 0.05em;
+}
+.sp-tag.cr { background: rgba(220,38,38,0.2); color: #fca5a5; }
+.sp-tag.en { background: rgba(249,115,22,0.2); color: #fdba74; }
+.sp-tag.vu { background: rgba(234,179,8,0.2); color: #fde047; }
+.sp-tag.nt { background: rgba(34,197,94,0.2); color: #86efac; }
+.sp-tag.lc { background: rgba(59,130,246,0.15); color: #93c5fd; }
+.shark-popup .sp-list { font-size: 0.68rem; line-height: 1.6; color: #c8dce4; }
+.shark-popup .sp-list .sp-item { display: flex; justify-content: space-between; align-items: center; }
+.shark-popup .sp-list .sp-item i { color: #e8f4f8; }
+.shark-mode-btn.active { background: rgba(0,212,200,0.15) !important; color: var(--teal) !important; border-color: rgba(0,212,200,0.4) !important; }
+.leaflet-popup-content-wrapper { background: #041424 !important; border: 1px solid rgba(0,200,200,0.2) !important; border-radius: 8px !important; }
+.leaflet-popup-tip { background: #041424 !important; }
+.leaflet-popup-close-button { color: #7db3c8 !important; }
 </style>
 </head>
 <body>
@@ -582,16 +603,24 @@ input[type=range] {
     </div>
 
     <!-- BIODIVERSITY -->
-    <div class="sb-section">🦈 Species Richness</div>
+    <div class="sb-section">🦈 Shark &amp; Ray Biodiversity</div>
     <div class="sb-group">
-      <div class="sb-group-title">IUCN Red List Spatial Data</div>
+      <div class="sb-group-title">IUCN Red List · 1,221 species</div>
       <label class="cb-row">
         <input type="checkbox" id="iucn-sharks">
         <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Sharks &amp; Rays richness</span>
+        <span class="cb-label">Show grid layer</span>
       </label>
-      <div style="font-size:0.62rem;color:var(--text-dim);margin-top:2px;line-height:1.4">
-        1,221 species · 1° grid · extant native ranges
+      <div style="margin-top:6px">
+        <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px">Colour by</div>
+        <div style="display:flex;gap:4px">
+          <button class="shark-mode-btn active" data-mode="threat" style="flex:1;font-size:0.65rem;padding:3px 0;border:1px solid var(--border);border-radius:4px;background:rgba(0,212,200,0.1);color:var(--teal);cursor:pointer;font-family:'Instrument Sans',sans-serif">Threat score</button>
+          <button class="shark-mode-btn" data-mode="richness" style="flex:1;font-size:0.65rem;padding:3px 0;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text-dim);cursor:pointer;font-family:'Instrument Sans',sans-serif">Species count</button>
+          <button class="shark-mode-btn" data-mode="critical" style="flex:1;font-size:0.65rem;padding:3px 0;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text-dim);cursor:pointer;font-family:'Instrument Sans',sans-serif">CR + EN only</button>
+        </div>
+      </div>
+      <div style="font-size:0.6rem;color:var(--text-dim);margin-top:6px;line-height:1.4">
+        Click any cell on the map for species breakdown
       </div>
     </div>
 
@@ -639,9 +668,16 @@ input[type=range] {
       <div class="legend-row"><div class="ldot" style="background:#ff2244;border-radius:50%"></div><span>Dark vessel (SAR unmatched)</span></div>
 
       <div style="height:0.5rem"></div>
-      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Shark &amp; Ray Richness (IUCN)</div>
-      <div style="height:10px;border-radius:3px;margin:4px 0 2px;background:linear-gradient(to right, #1a237e, #0288d1, #00e5ff, #ffffff)"></div>
-      <div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--text-dim)"><span>Low (1 sp.)</span><span>High (158 sp.)</span></div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Shark &amp; Ray Biodiversity (IUCN)</div>
+      <div style="height:10px;border-radius:3px;margin:4px 0 2px;background:linear-gradient(to right, rgba(20,10,80,0.3), #b83020, #f04020)"></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--text-dim)"><span>Low threat</span><span>High threat (446)</span></div>
+      <div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap">
+        <span style="font-size:0.55rem;padding:1px 5px;border-radius:2px;background:rgba(220,38,38,0.2);color:#fca5a5">CR</span>
+        <span style="font-size:0.55rem;padding:1px 5px;border-radius:2px;background:rgba(249,115,22,0.2);color:#fdba74">EN</span>
+        <span style="font-size:0.55rem;padding:1px 5px;border-radius:2px;background:rgba(234,179,8,0.2);color:#fde047">VU</span>
+        <span style="font-size:0.55rem;padding:1px 5px;border-radius:2px;background:rgba(34,197,94,0.2);color:#86efac">NT</span>
+        <span style="font-size:0.55rem;padding:1px 5px;border-radius:2px;background:rgba(59,130,246,0.15);color:#93c5fd">LC</span>
+      </div>
 
       <div style="height:0.5rem"></div>
       <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">OBIS Biodiversity</div>
@@ -982,51 +1018,118 @@ Object.entries(cbMap).forEach(([cbId, layerId]) => {
   });
 });
 
-// IUCN Sharks & Rays richness heatmap (from R2-hosted processed data)
-const R2_SHARKS = R2_BASE + '/iucn_sharks_richness_1deg.geojson';
-let sharkLayer = null;
+// IUCN Sharks & Rays — interactive grid with threat data
+const R2_SHARKS = R2_BASE + '/iucn_sharks_v2.geojson';
+let sharkData = null;
+let sharkGridLayer = null;
+let sharkMode = 'threat';
+
+const THREAT_COLORS = {
+  cr: { fill: '#dc2626', label: 'CR' },
+  en: { fill: '#f97316', label: 'EN' },
+  vu: { fill: '#eab308', label: 'VU' },
+  nt: { fill: '#22c55e', label: 'NT' },
+  lc: { fill: '#3b82f6', label: 'LC' }
+};
+
+function getSharkCellColor(props) {
+  if (sharkMode === 'critical') {
+    const cren = (props.cr || 0) + (props.en || 0);
+    if (cren === 0) return null;
+    const t = Math.min(cren / 20, 1);
+    const r = Math.round(180 + t * 75);
+    const g = Math.round(60 - t * 40);
+    return `rgba(${r},${g},30,${0.3 + t * 0.5})`;
+  } else if (sharkMode === 'richness') {
+    const t = Math.min(props.n / 158, 1);
+    const r = Math.round(10 + t * 0);
+    const g = Math.round(40 + t * 190);
+    const b = Math.round(80 + t * 175);
+    return `rgba(${r},${g},${b},${0.2 + t * 0.55})`;
+  } else {
+    const t = Math.min(props.ts / 446, 1);
+    const r = Math.round(20 + t * 220);
+    const g = Math.round(10 + t * 50);
+    const b = Math.round(80 - t * 50);
+    return `rgba(${r},${g},${b},${0.2 + t * 0.6})`;
+  }
+}
+
+function buildSharkPopup(props) {
+  const tags = ['cr','en','vu','nt','lc'].map(k => {
+    const v = props[k] || 0;
+    return v > 0 ? `<span class="sp-tag ${k}">${THREAT_COLORS[k].label} ${v}</span>` : '';
+  }).join('');
+
+  const top = (props.top || []).map(s =>
+    `<div class="sp-item"><i>${s.s}</i><span class="sp-tag ${s.c.toLowerCase()}">${s.c}</span></div>`
+  ).join('');
+
+  return `<div class="shark-popup">
+    <h3>${props.n} species</h3>
+    <div class="sp-stats">${tags}</div>
+    <div style="font-size:0.6rem;color:#7db3c8;margin-bottom:4px">Threat score: <strong style="color:#00d4c8">${props.ts}</strong></div>
+    ${top ? `<div style="font-size:0.58rem;color:#5a8a9a;margin:6px 0 3px;text-transform:uppercase;letter-spacing:0.1em">Most threatened in area</div><div class="sp-list">${top}</div>` : ''}
+  </div>`;
+}
+
+function renderSharkGrid() {
+  if (sharkGridLayer) { map.removeLayer(sharkGridLayer); sharkGridLayer = null; }
+  if (!sharkData || !document.getElementById('iucn-sharks').checked) return;
+
+  const gridFeatures = [];
+  sharkData.features.forEach(f => {
+    const color = getSharkCellColor(f.properties);
+    if (!color) return;
+    const [lon, lat] = f.geometry.coordinates;
+    const rect = L.rectangle(
+      [[lat - 0.5, lon - 0.5], [lat + 0.5, lon + 0.5]],
+      { color: 'rgba(0,200,200,0.08)', weight: 0.5, fillColor: color, fillOpacity: 1 }
+    );
+    rect.on('mouseover', function() {
+      this.setStyle({ color: '#00d4c8', weight: 1.5 });
+      this._path && (this._path.style.cursor = 'pointer');
+    });
+    rect.on('mouseout', function() {
+      this.setStyle({ color: 'rgba(0,200,200,0.08)', weight: 0.5 });
+    });
+    rect.bindPopup(() => buildSharkPopup(f.properties), { maxWidth: 280 });
+    const p = f.properties;
+    const tipText = `${p.n} species · ${p.cr||0} CR · ${p.en||0} EN · score ${p.ts}`;
+    rect.bindTooltip(tipText, { sticky: true, className: 'leaflet-tooltip' });
+    gridFeatures.push(rect);
+  });
+
+  sharkGridLayer = L.layerGroup(gridFeatures);
+  sharkGridLayer.addTo(map);
+}
 
 document.getElementById('iucn-sharks').addEventListener('change', e => {
-  if (!sharkLayer) {
-    document.getElementById('gee-status').innerHTML = '⏳ Loading shark richness data...';
+  if (!sharkData) {
+    document.getElementById('gee-status').innerHTML = '⏳ Loading shark data...';
     fetch(R2_SHARKS)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (!data) {
-          document.getElementById('gee-status').innerHTML = '⚠️ Shark data failed to load';
-          e.target.checked = false;
-          return;
-        }
-        // Find max species count for normalization
-        const maxN = Math.max(...data.features.map(f => f.properties.n));
-        const pts = data.features.map(f => {
-          const c = f.geometry.coordinates;
-          return [c[1], c[0], f.properties.n / maxN];
-        });
-        sharkLayer = L.heatLayer(pts, {
-          radius: 12, blur: 10, maxZoom: 8, opacity: currentOpacity, minOpacity: 0.15,
-          gradient: {
-            0.0: 'rgba(0,0,40,0)',
-            0.15: '#1a237e',
-            0.35: '#0d47a1',
-            0.5: '#0288d1',
-            0.65: '#00bcd4',
-            0.8: '#00e5ff',
-            0.95: '#e0f7fa',
-            1.0: '#ffffff'
-          }
-        });
-        if (e.target.checked) sharkLayer.addTo(map);
-        document.getElementById('gee-status').innerHTML = `✅ Shark richness loaded (${data.features.length.toLocaleString()} cells, max ${maxN} species)`;
+        if (!data) { document.getElementById('gee-status').innerHTML = '⚠️ Shark data failed'; e.target.checked = false; return; }
+        sharkData = data;
+        document.getElementById('gee-status').innerHTML = `✅ ${data.features.length.toLocaleString()} cells loaded`;
+        renderSharkGrid();
       })
-      .catch(err => {
-        document.getElementById('gee-status').innerHTML = '⚠️ Shark data fetch error';
-        e.target.checked = false;
-      });
+      .catch(() => { document.getElementById('gee-status').innerHTML = '⚠️ Fetch error'; e.target.checked = false; });
   } else {
-    if (e.target.checked) sharkLayer.addTo(map);
-    else map.removeLayer(sharkLayer);
+    if (e.target.checked) renderSharkGrid();
+    else if (sharkGridLayer) { map.removeLayer(sharkGridLayer); sharkGridLayer = null; }
   }
+});
+
+// Mode toggle buttons
+document.querySelectorAll('.shark-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.shark-mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    sharkMode = btn.dataset.mode;
+    renderSharkGrid();
+  });
 });
 
 // ─────────────────────────────────────────────────────────
