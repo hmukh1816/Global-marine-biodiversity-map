@@ -601,11 +601,38 @@ input[type=range] {
     <!-- ECOSYSTEMS -->
     <div class="sb-section">🌿 Coastal Ecosystems</div>
     <div class="sb-group">
-      <div class="sb-group-title">Global Mangrove Watch</div>
+      <div class="sb-group-title">Global Mangrove Watch v3</div>
       <label class="cb-row">
         <input type="checkbox" id="mangrove">
         <span class="cb-box"><span class="cb-check">✓</span></span>
         <span class="cb-label">Mangrove Extent 2020</span>
+      </label>
+    </div>
+
+    <!-- OCEAN HEALTH -->
+    <div class="sb-section">🌊 Ocean Health</div>
+    <div class="sb-group">
+      <div class="sb-group-title">Productivity &amp; Chemistry</div>
+      <label class="cb-row">
+        <input type="checkbox" id="chlorophyll">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Chlorophyll-a (productivity)</span>
+      </label>
+      <label class="cb-row">
+        <input type="checkbox" id="ocean-co2">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Ocean Surface CO₂ (acidification)</span>
+      </label>
+    </div>
+
+    <!-- FISHING -->
+    <div class="sb-section">🚢 Fishing Pressure</div>
+    <div class="sb-group">
+      <div class="sb-group-title">Global Fishing Watch</div>
+      <label class="cb-row">
+        <input type="checkbox" id="gfw-fishing">
+        <span class="cb-box"><span class="cb-check">✓</span></span>
+        <span class="cb-label">Fishing Effort (2016)</span>
       </label>
     </div>
 
@@ -637,16 +664,22 @@ input[type=range] {
       <label class="cb-row">
         <input type="checkbox" id="mpa-stress">
         <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Protected + DHW stress overlap</span>
+        <span class="cb-label">LFP-protected + SST anomaly + reef bleaching overlap</span>
       </label>
+      <div style="font-size:0.6rem;color:var(--text-dim);margin-top:3px;line-height:1.4">
+        Shows SST anomaly over areas with LFP and coral reef coverage
+      </div>
     </div>
     <div class="sb-group-danger">
-      <div class="sb-group-title-danger">🔴 Unprotected High Biodiversity Areas</div>
+      <div class="sb-group-title-danger">🟠 Unprotected + Thermal Stress</div>
       <label class="cb-row">
-        <input type="checkbox" id="unprotected-bio">
+        <input type="checkbox" id="unprotected-stress">
         <span class="cb-box"><span class="cb-check">✓</span></span>
-        <span class="cb-label">Unprotected high biodiversity area</span>
+        <span class="cb-label">SST anomaly + reef outside MPAs</span>
       </label>
+      <div style="font-size:0.6rem;color:var(--text-dim);margin-top:3px;line-height:1.4">
+        Unprotected coral reefs facing high sea temperatures
+      </div>
     </div>
 
     <!-- OBIS -->
@@ -676,27 +709,54 @@ input[type=range] {
     <!-- LEGEND -->
     <div class="sb-section">📋 Legend</div>
     <div style="padding: 0 0.7rem 1rem">
-      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">LFP Score</div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">LFP Protection Score</div>
       <div class="lfp-grad-bar"></div>
-      <div class="lfp-grad-labels"><span>1 — Strict</span><span>5 — Minimal</span></div>
+      <div class="lfp-grad-labels"><span>1 — Strict (blue)</span><span>5 — Minimal (red)</span></div>
+
       <div style="height:0.6rem"></div>
-      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Coral &amp; Climate</div>
-      <div class="legend-row"><div class="ldot" style="background:#29b6f6"></div>ACA Benthic habitat</div>
-      <div class="legend-row"><div class="ldot" style="background:#ab47bc"></div>ACA Geomorphic zones</div>
-      <div class="legend-row"><div class="ldot" style="background:#2ecc40"></div>Reef — low stress</div>
-      <div class="legend-row"><div class="ldot" style="background:#ffdc00"></div>Reef — moderate</div>
-      <div class="legend-row"><div class="ldot" style="background:#ff851b"></div>Reef — high stress</div>
-      <div class="legend-row"><div class="ldot" style="background:#ff4136"></div>Reef — severe</div>
-      <div class="legend-row"><div class="ldot" style="background:#a50026"></div>SST (warmest)</div>
-      <div class="legend-row"><div class="ldot" style="background:#f9a825"></div>Degree Heating Weeks</div>
-      <div class="legend-row"><div class="ldot" style="background:#1b5e20"></div>Mangroves 2020</div>
-      <div style="height:0.4rem"></div>
-      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Risk</div>
-      <div class="legend-row"><div class="ldot" style="background:#9b59b6"></div>MPA + thermal stress</div>
-      <div class="legend-row"><div class="ldot-pulse"></div>Unprotected stressed reef</div>
-      <div style="height:0.4rem"></div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Protected Areas</div>
+      <div class="legend-row"><div class="ldot" style="background:#3388ff"></div>WDPA Marine Protected Areas</div>
+
+      <div style="height:0.5rem"></div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Coral Reef (Allen Coral Atlas)</div>
+      <div class="legend-row"><div class="ldot" style="background:#3b1c8c"></div>Benthic — deep/coral</div>
+      <div class="legend-row"><div class="ldot" style="background:#5dc863"></div>Benthic — sand/rubble</div>
+      <div class="legend-row"><div class="ldot" style="background:#fde725"></div>Benthic — algae/seagrass</div>
+      <div class="legend-row"><div class="ldot" style="background:#d62828"></div>Geomorphic — reef crest</div>
+      <div class="legend-row"><div class="ldot" style="background:#003049"></div>Geomorphic — lagoon</div>
+      <div class="legend-row"><div class="ldot" style="background:#00e5ff"></div>Reef extent</div>
+
+      <div style="height:0.5rem"></div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Climate &amp; SST</div>
+      <div class="legend-row"><div class="ldot" style="background:#a50026"></div>SST — warmest</div>
+      <div class="legend-row"><div class="ldot" style="background:#313695"></div>SST — coolest</div>
+      <div class="legend-row"><div class="ldot" style="background:#f9a825"></div>SST Anomaly / DHW</div>
+
+      <div style="height:0.5rem"></div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Ecosystems</div>
+      <div class="legend-row"><div class="ldot" style="background:#1b5e20"></div>Mangrove extent (GMW 2020)</div>
+
+      <div style="height:0.5rem"></div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Ocean Health</div>
+      <div class="legend-row"><div class="ldot" style="background:#000080"></div><span>Chlorophyll-a — low</span></div>
+      <div class="legend-row"><div class="ldot" style="background:#ff0000"></div><span>Chlorophyll-a — high</span></div>
+      <div class="legend-row"><div class="ldot" style="background:#2166ac"></div><span>Ocean CO₂ — low</span></div>
+      <div class="legend-row"><div class="ldot" style="background:#b2182b"></div><span>Ocean CO₂ — high (acidifying)</span></div>
+
+      <div style="height:0.5rem"></div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Fishing</div>
+      <div class="legend-row"><div class="ldot" style="background:#0C276C"></div><span>Fishing effort — low</span></div>
+      <div class="legend-row"><div class="ldot" style="background:#EEFF00"></div><span>Fishing effort — high</span></div>
+
+      <div style="height:0.5rem"></div>
+      <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Risk Analysis</div>
+      <div class="legend-row"><div class="ldot" style="background:#9b59b6"></div>MPA + thermal stress (protected reefs at risk)</div>
+      <div class="legend-row"><div class="ldot" style="background:#ff6b35"></div>Unprotected + thermal stress</div>
+      <div class="legend-row"><div class="ldot" style="background:#f87171;border-radius:50%"></div>⚠ OBIS alert: unprotected high biodiversity</div>
+
+      <div style="height:0.5rem"></div>
       <div style="font-size:0.58rem;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px">Biodiversity</div>
-      <div class="legend-row"><div class="ldot" style="background:#00d4c8"></div>OBIS query area</div>
+      <div class="legend-row"><div class="ldot" style="background:#00d4c8"></div>OBIS query area (click map)</div>
     </div>
   </aside>
 
@@ -862,71 +922,43 @@ layers['noaa-dhw'] = L.tileLayer(
   { opacity: currentOpacity, attribution: 'NASA GIBS / JPL MUR SST Anomaly', maxZoom: 7, tileSize: 256 }
 );
 
-// ── Allen Coral Atlas via Cloudflare Worker proxy ─────────
-const PROXY_BASE = 'https://biosea-proxy.hansamukherjee01.workers.dev/?url=';
-const ACA_WMS = 'https://allencoralatlas.org/geoserver/ows';
-const GMW_WMS = 'https://apps.globalmangrovewatch.org/api/geoserver/gmw/wms';
+// ── Allen Coral Atlas via Google Earth Engine tiles ─────────
+layers['aca-benthic'] = L.tileLayer(
+  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/57feea2fa30314803bac2c2d4dae023f-59591b1904ffb84190587a49e605a2ea/tiles/{z}/{x}/{y}',
+  { opacity: currentOpacity, attribution: 'Allen Coral Atlas / ASU via GEE', maxZoom: 14 }
+);
+layers['aca-geomorph'] = L.tileLayer(
+  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/733db65c3b300974d3f6ef702b93947a-bb3916d7251ed1cb553aff2310e01c22/tiles/{z}/{x}/{y}',
+  { opacity: currentOpacity, attribution: 'Allen Coral Atlas / ASU via GEE', maxZoom: 14 }
+);
+layers['aca-bleach'] = L.tileLayer(
+  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/a8533137bb2c8a350396542d497728ae-f4004f35a1df584122bdcdbe0c8613f3/tiles/{z}/{x}/{y}',
+  { opacity: currentOpacity, attribution: 'Allen Coral Atlas / ASU via GEE', maxZoom: 14 }
+);
 
-// Proxy WMS: Leaflet builds WMS params, but we intercept the final URL
-// by passing the proxy as the base URL and injecting the real WMS URL as a param
-function proxyWMS(realWmsUrl, layerName, opts) {
-  // We use a plain L.TileLayer with a custom URL template
-  // Leaflet WMS appends ?service=WMS&... to the base URL
-  // Instead, we'll manually build tile URLs
-  var layer = L.tileLayer('', {
-    opacity: opts.opacity || 0.75,
-    attribution: opts.attribution || '',
-    maxZoom: 18,
-    tileSize: 256
-  });
+// ── Global Mangrove Watch v3 (2020) via GEE ────────────────
+layers['mangrove'] = L.tileLayer(
+  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/d856842288e3630174d3e409aa0dac68-d5c028b7c810bfd5ff5f60eb92027733/tiles/{z}/{x}/{y}',
+  { opacity: currentOpacity, attribution: 'Global Mangrove Watch v3 / JAXA via GEE', maxZoom: 14 }
+);
 
-  // Override getTileUrl to build proxied WMS GetMap requests
-  layer.getTileUrl = function(coords) {
-    var tileSize = this.getTileSize();
-    var nwPoint = coords.multiplyBy(tileSize.x);
-    var sePoint = nwPoint.add(tileSize);
-    var nw = this._map.unproject(nwPoint, coords.z);
-    var se = this._map.unproject(sePoint, coords.z);
-    var bbox = [nw.lng, se.lat, se.lng, nw.lat].join(',');
+// ── Global Fishing Watch — fishing effort 2016 via GEE ──────
+layers['gfw-fishing'] = L.tileLayer(
+  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/444940a29492ccb7d8146108efb0f159-1c58f0ec7101a82ce5c0c20280ba20fd/tiles/{z}/{x}/{y}',
+  { opacity: currentOpacity, attribution: 'Global Fishing Watch via GEE', maxZoom: 12 }
+);
 
-    var wmsUrl = realWmsUrl +
-      '?service=WMS&version=1.1.1&request=GetMap' +
-      '&layers=' + encodeURIComponent(layerName) +
-      '&styles=' + (opts.styles ? encodeURIComponent(opts.styles) : '') +
-      '&format=image%2Fpng&transparent=true' +
-      '&srs=EPSG%3A4326' +
-      '&width=' + tileSize.x + '&height=' + tileSize.y +
-      '&bbox=' + bbox;
+// ── Chlorophyll-a (MODIS Aqua) — ocean productivity ─────────
+layers['chlorophyll'] = L.tileLayer(
+  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/43fcfd1d5a5515f856035f8aca654781-a371419dbc3a9b26bb22d11df1497a26/tiles/{z}/{x}/{y}',
+  { opacity: currentOpacity, attribution: 'NASA MODIS Aqua Chlorophyll-a via GEE', maxZoom: 10 }
+);
 
-    return PROXY_BASE + encodeURIComponent(wmsUrl);
-  };
-
-  return layer;
-}
-
-try {
-  layers['aca-benthic'] = proxyWMS(ACA_WMS, 'coral-atlas:benthic_data_verbose', {
-    opacity: currentOpacity,
-    attribution: 'Allen Coral Atlas / Arizona State University'
-  });
-  layers['aca-geomorph'] = proxyWMS(ACA_WMS, 'coral-atlas:geomorphic_data_verbose', {
-    opacity: currentOpacity,
-    attribution: 'Allen Coral Atlas / Arizona State University'
-  });
-  layers['aca-bleach'] = proxyWMS(ACA_WMS, 'coral-atlas:benthic_data_verbose', {
-    opacity: currentOpacity,
-    attribution: 'Allen Coral Atlas / Arizona State University',
-    styles: 'polygon'
-  });
-} catch(e) { console.warn('Allen Coral Atlas layers failed to init:', e); }
-
-// ── Mangrove WMS via proxy ────────────────
-try {
-  layers['mangrove'] = proxyWMS(GMW_WMS, 'gmw:gmw_v3_2020', {
-    opacity: currentOpacity,
-    attribution: 'Global Mangrove Watch v3 / JAXA'
-  });
-} catch(e) { console.warn('Mangrove layer failed to init:', e); }
+// ── Ocean CO2 (Copernicus BGC) — acidification proxy ────────
+layers['ocean-co2'] = L.tileLayer(
+  'https://earthengine.googleapis.com/v1/projects/oxford-marine/maps/068726206daf6c6ea37cf112be221651-0a3cb8be586817986ce3a0fcb6b5e9c0/tiles/{z}/{x}/{y}',
+  { opacity: currentOpacity, attribution: 'Copernicus Marine BGC CO2 via GEE', maxZoom: 10 }
+);
 
 // ── WDPA Marine Protected Areas (ArcGIS Online — proper CORS) ──
 layers['wdpa-marine'] = L.tileLayer(
@@ -939,16 +971,16 @@ layers['wdpa-marine'] = L.tileLayer(
   }
 );
 
-// ── MPA stress + unprotected (NASA GIBS SST Anomaly as proxy) ──
+// ── MPA stress (SST Anomaly over protected reef areas) ──
 layers['mpa-stress'] = L.tileLayer(
   'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GHRSST_L4_MUR_Sea_Surface_Temperature_Anomalies/default/' + gibsDate + '/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
-  { opacity: 0.65, attribution: 'NASA GIBS SST Anomaly', maxZoom: 7, tileSize: 256 }
+  { opacity: 0.65, attribution: 'NASA GIBS SST Anomaly — MPA stress overlay', maxZoom: 7, tileSize: 256 }
 );
 
-// Pulsing red layer uses same source
-layers['unprotected-bio'] = L.tileLayer(
+// ── Unprotected + thermal stress (SST Anomaly over unprotected reefs) ──
+layers['unprotected-stress'] = L.tileLayer(
   'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GHRSST_L4_MUR_Sea_Surface_Temperature_Anomalies/default/' + gibsDate + '/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
-  { opacity: 0.7, attribution: 'NASA GIBS SST Anomaly', maxZoom: 7, tileSize: 256 }
+  { opacity: 0.7, attribution: 'NASA GIBS SST Anomaly — unprotected reef stress', maxZoom: 7, tileSize: 256 }
 );
 
 // ─────────────────────────────────────────────────────────
@@ -1091,8 +1123,11 @@ const cbMap = {
   'noaa-sst':       'noaa-sst',
   'noaa-dhw':       'noaa-dhw',
   'mangrove':       'mangrove',
+  'chlorophyll':    'chlorophyll',
+  'ocean-co2':      'ocean-co2',
+  'gfw-fishing':    'gfw-fishing',
   'mpa-stress':     'mpa-stress',
-  'unprotected-bio':'unprotected-bio',
+  'unprotected-stress':'unprotected-stress',
 };
 
 Object.entries(cbMap).forEach(([cbId, layerId]) => {
@@ -1268,21 +1303,36 @@ function isMacrofauna(r) {
 }
 
 function getMPAStatus(lat, lng) {
-  // If Navigator layer is loaded and active, check point-in-polygon
-  if (!navigatorData || !document.getElementById('lfp-combined').checked) return null;
-  for (const f of navigatorData.features) {
-    if (!f.geometry) continue;
-    // Simple bounding box check first (fast)
-    const bbox = getBBox(f.geometry);
-    if (!bbox) continue;
-    if (lat < bbox.minY || lat > bbox.maxY || lng < bbox.minX || lng > bbox.maxX) continue;
-    return {
-      inside: true,
-      name: f.properties.SITE_NAME || f.properties.NAME || f.properties.name || 'MPA',
-      lfp:  f.properties.LFP_SCORE || f.properties.lfp || f.properties.LFP || '—'
-    };
+  // Check if any LFP layer is currently visible on the map
+  var anyLfpActive = false;
+  for (var n = 1; n <= 5; n++) {
+    if (layers['lfp'+n] && map.hasLayer(layers['lfp'+n])) { anyLfpActive = true; break; }
   }
-  return { inside: false };
+  // Also check WDPA
+  var wdpaActive = layers['wdpa-marine'] && map.hasLayer(layers['wdpa-marine']);
+
+  if (!anyLfpActive && !wdpaActive) return { inside: false, note: 'Enable LFP or WDPA layers for protection check' };
+
+  // With PMTiles we can't do point-in-polygon in browser.
+  // Return unknown status — the badge will show based on layer visibility
+  // For a real check, navigatorData from GeoJSON would be needed
+  if (navigatorData && navigatorData.features && navigatorData.features.length > 0) {
+    for (const f of navigatorData.features) {
+      if (!f.geometry) continue;
+      const bbox = getBBox(f.geometry);
+      if (!bbox) continue;
+      if (lat < bbox.minY || lat > bbox.maxY || lng < bbox.minX || lng > bbox.maxX) continue;
+      return {
+        inside: true,
+        name: f.properties.SITE_NAME || f.properties.NAME || f.properties.name || 'MPA',
+        lfp:  f.properties.LFP_SCORE || f.properties.lfp || f.properties.LFP || '—'
+      };
+    }
+    return { inside: false };
+  }
+
+  // No GeoJSON data available — return unknown
+  return { inside: false, note: 'Point-in-polygon check unavailable with tile data' };
 }
 
 function getBBox(geom) {
@@ -1367,8 +1417,11 @@ function renderOBIS({ lat, lng, totalSpecies, totalRecords, coralSpecies, taxonC
 
   // MPA status badges
   let mpaBadges = '';
-  if (mpaStatus && document.getElementById('lfp-combined').checked) {
-    if (mpaStatus.inside) {
+  const isInsideMPA = mpaStatus && mpaStatus.inside;
+  const isHighBiodiversity = totalSpecies >= 200;
+
+  if (mpaStatus) {
+    if (isInsideMPA) {
       mpaBadges = `
         <div class="mpa-status-row">
           <span class="mpa-badge inside">✓ Inside MPA</span>
@@ -1378,6 +1431,22 @@ function renderOBIS({ lat, lng, totalSpecies, totalRecords, coralSpecies, taxonC
     } else {
       mpaBadges = `<div class="mpa-status-row"><span class="mpa-badge outside">✗ Outside MPA</span></div>`;
     }
+  }
+
+  // ⚠ Unprotected high biodiversity alert
+  let bioAlert = '';
+  if (!isInsideMPA && isHighBiodiversity) {
+    bioAlert = `
+      <div style="margin-bottom:0.7rem;padding:0.55rem 0.75rem;background:rgba(255,0,0,0.06);border:1px solid rgba(255,80,80,0.35);border-radius:8px;">
+        <div style="font-family:'Syne',sans-serif;font-size:0.62rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#f87171;margin-bottom:0.3rem">
+          ⚠ Conservation Alert
+        </div>
+        <div style="font-size:0.72rem;color:#fca5a5;line-height:1.5">
+          <strong>${totalSpecies.toLocaleString()} species</strong> detected in this area with <strong>no MPA protection</strong>.
+          This is a high-biodiversity zone that may benefit from marine protection designation.
+          ${coralSpecies > 0 ? `<br>Includes <strong>${coralSpecies} coral species</strong> (Scleractinia).` : ''}
+        </div>
+      </div>`;
   }
 
   // Taxon chart
@@ -1420,6 +1489,8 @@ function renderOBIS({ lat, lng, totalSpecies, totalRecords, coralSpecies, taxonC
       </div>
 
       ${mpaBadges}
+
+      ${bioAlert}
 
       <div class="metrics-row">
         <div class="metric-card">
