@@ -863,73 +863,68 @@ layers['noaa-dhw'] = L.tileLayer(
 );
 
 // ── Allen Coral Atlas via Cloudflare Worker proxy ─────────
-const PROXY = 'https://biosea-proxy.hansamukherjee01.workers.dev/?url=';
+const PROXY_BASE = 'https://biosea-proxy.hansamukherjee01.workers.dev/?url=';
 const ACA_WMS = 'https://allencoralatlas.org/geoserver/ows';
 const GMW_WMS = 'https://apps.globalmangrovewatch.org/api/geoserver/gmw/wms';
 
-// Custom WMS layer that routes through CORS proxy
-L.TileLayer.WMSProxy = L.TileLayer.WMS.extend({
-  _proxyBase: '',
-  initialize: function(proxyBase, wmsUrl, options) {
-    this._proxyBase = proxyBase;
-    this._realWmsUrl = wmsUrl;
-    L.TileLayer.WMS.prototype.initialize.call(this, wmsUrl, options);
-  },
-  getTileUrl: function(coords) {
-    // Get the normal WMS URL that Leaflet builds
-    var origUrl = L.TileLayer.WMS.prototype.getTileUrl.call(this, coords);
-    // Route through proxy
-    return this._proxyBase + encodeURIComponent(origUrl);
-  },
-  createTile: function(coords, done) {
-    var tile = L.TileLayer.WMS.prototype.createTile.call(this, coords, done);
-    tile.removeAttribute('crossorigin');
-    return tile;
-  }
-});
+// Proxy WMS: Leaflet builds WMS params, but we intercept the final URL
+// by passing the proxy as the base URL and injecting the real WMS URL as a param
+function proxyWMS(realWmsUrl, layerName, opts) {
+  // We use a plain L.TileLayer with a custom URL template
+  // Leaflet WMS appends ?service=WMS&... to the base URL
+  // Instead, we'll manually build tile URLs
+  var layer = L.tileLayer('', {
+    opacity: opts.opacity || 0.75,
+    attribution: opts.attribution || '',
+    maxZoom: 18,
+    tileSize: 256
+  });
+
+  // Override getTileUrl to build proxied WMS GetMap requests
+  layer.getTileUrl = function(coords) {
+    var tileSize = this.getTileSize();
+    var nwPoint = coords.multiplyBy(tileSize.x);
+    var sePoint = nwPoint.add(tileSize);
+    var nw = this._map.unproject(nwPoint, coords.z);
+    var se = this._map.unproject(sePoint, coords.z);
+    var bbox = [nw.lng, se.lat, se.lng, nw.lat].join(',');
+
+    var wmsUrl = realWmsUrl +
+      '?service=WMS&version=1.1.1&request=GetMap' +
+      '&layers=' + encodeURIComponent(layerName) +
+      '&styles=' + (opts.styles ? encodeURIComponent(opts.styles) : '') +
+      '&format=image%2Fpng&transparent=true' +
+      '&srs=EPSG%3A4326' +
+      '&width=' + tileSize.x + '&height=' + tileSize.y +
+      '&bbox=' + bbox;
+
+    return PROXY_BASE + encodeURIComponent(wmsUrl);
+  };
+
+  return layer;
+}
 
 try {
-  layers['aca-benthic'] = new L.TileLayer.WMSProxy(PROXY, ACA_WMS, {
-    layers: 'coral-atlas:benthic_data_verbose',
-    format: 'image/png',
-    transparent: true,
+  layers['aca-benthic'] = proxyWMS(ACA_WMS, 'coral-atlas:benthic_data_verbose', {
     opacity: currentOpacity,
-    attribution: 'Allen Coral Atlas / Arizona State University',
-    version: '1.1.1',
-    srs: 'EPSG:4326'
+    attribution: 'Allen Coral Atlas / Arizona State University'
   });
-  layers['aca-geomorph'] = new L.TileLayer.WMSProxy(PROXY, ACA_WMS, {
-    layers: 'coral-atlas:geomorphic_data_verbose',
-    format: 'image/png',
-    transparent: true,
+  layers['aca-geomorph'] = proxyWMS(ACA_WMS, 'coral-atlas:geomorphic_data_verbose', {
     opacity: currentOpacity,
-    attribution: 'Allen Coral Atlas / Arizona State University',
-    version: '1.1.1',
-    srs: 'EPSG:4326'
+    attribution: 'Allen Coral Atlas / Arizona State University'
   });
-  // Bleaching not available via WMS — use benthic as reef extent proxy
-  layers['aca-bleach'] = new L.TileLayer.WMSProxy(PROXY, ACA_WMS, {
-    layers: 'coral-atlas:benthic_data_verbose',
-    format: 'image/png',
-    transparent: true,
+  layers['aca-bleach'] = proxyWMS(ACA_WMS, 'coral-atlas:benthic_data_verbose', {
     opacity: currentOpacity,
     attribution: 'Allen Coral Atlas / Arizona State University',
-    version: '1.1.1',
-    srs: 'EPSG:4326',
     styles: 'polygon'
   });
 } catch(e) { console.warn('Allen Coral Atlas layers failed to init:', e); }
 
 // ── Mangrove WMS via proxy ────────────────
 try {
-  layers['mangrove'] = new L.TileLayer.WMSProxy(PROXY, GMW_WMS, {
-    layers: 'gmw:gmw_v3_2020',
-    format: 'image/png',
-    transparent: true,
+  layers['mangrove'] = proxyWMS(GMW_WMS, 'gmw:gmw_v3_2020', {
     opacity: currentOpacity,
-    attribution: 'Global Mangrove Watch v3 / JAXA',
-    version: '1.1.1',
-    srs: 'EPSG:4326'
+    attribution: 'Global Mangrove Watch v3 / JAXA'
   });
 } catch(e) { console.warn('Mangrove layer failed to init:', e); }
 
